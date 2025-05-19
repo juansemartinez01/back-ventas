@@ -53,6 +53,9 @@ export class Producto {
   @Column({ length: 500, nullable: true })
   imagen?: string;
 
+  @Column({ name: 'precio_vacio', type: 'numeric', precision: 12, scale: 2, default: 0 })
+  precioVacio: number;
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 

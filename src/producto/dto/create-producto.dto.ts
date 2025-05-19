@@ -52,4 +52,7 @@ export class CreateProductoDto {
   @IsNotEmpty()
   @MaxLength(100)
   id_interno: string;
+
+  @IsNumber() @Min(0) @IsOptional()
+  precioVacio?: number;
 }

@@ -1,21 +1,49 @@
-import { Controller, Request, Post, UseGuards, Get } from '@nestjs/common';
+import { Controller, Req, Post, UseGuards, Get,SetMetadata, Body, Res } from '@nestjs/common';
+import { Request, Response } from 'express'; 
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { LoginDto } from './dto/login.dto';
+import { Public } from './isPublic';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+
+
+  
+  @Public() // Decorador para marcar la ruta como pública
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req) {
-    return this.authService.login(req.user);
+  async login(@Req() req, @Body() dto: LoginDto,@Res({ passthrough: true }) res: Response) {
+    // req.user ya incluye { id, usuario, nombre, email, roles }
+    const { access_token, user } = await this.authService.login(req.user);
+
+    // 1) Poner cookie 'jwt', HttpOnly y segura
+    res.cookie('jwt', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // sólo HTTPS en prod
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60,  // 1 hora
+    });
+
+    
+    return { user };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() req) {
+  getProfile(@Req() req) {
     return req.user;
   }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  me(@Req() req) {
+    
+    return req.user;
+  }
+
+  
 }

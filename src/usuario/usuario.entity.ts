@@ -1,5 +1,6 @@
+import { Cliente } from 'src/cliente/cliente.entity';
 import { UsuarioRol } from 'src/usuario-rol/usuario-rol.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity('usuarios')
 export class Usuario {
@@ -20,4 +21,11 @@ export class Usuario {
 
   @OneToMany(() => UsuarioRol, usuarioRol => usuarioRol.usuario)
   roles: UsuarioRol[];
+
+  @Column({ name: 'cliente_id', type: 'int', nullable: true })
+  clienteId?: number;
+
+  @ManyToOne(() => Cliente, c => c.usuarios, { nullable: true })
+  @JoinColumn({ name: 'cliente_id' })
+  cliente?: Cliente;
 }

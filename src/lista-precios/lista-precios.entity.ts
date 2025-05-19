@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Cliente } from 'src/cliente/cliente.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
 @Entity('listas_precios')
 export class ListaPrecios {
@@ -10,4 +11,7 @@ export class ListaPrecios {
 
   @Column({ type: 'date' })
   fecha: string;
+
+  @OneToMany(() => Cliente, c => c.listaPrecios)
+  clientes: Cliente[];
 }

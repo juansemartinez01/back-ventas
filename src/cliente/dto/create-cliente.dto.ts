@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, MaxLength, IsNumber, Min } from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, IsNumber, Min, IsInt, IsOptional } from 'class-validator';
 
 export class CreateClienteDto {
   @IsString()
@@ -28,4 +28,7 @@ export class CreateClienteDto {
   @IsNumber()
   @Min(0)
   saldo_cuenta_corriente: number;
+
+  @IsInt() @IsOptional()
+  listaPreciosId?: number;
 }

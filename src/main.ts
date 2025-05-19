@@ -4,10 +4,17 @@ if (!globalThis.crypto) {
 }
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { Reflector }    from '@nestjs/core';
+import * as cookieParser from 'cookie-parser';
 
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const reflector = app.get(Reflector);
+  // <— Aquí aplicamos el guard de JWT a todo, pero respetando @Public()
+  app.useGlobalGuards(new JwtAuthGuard(reflector));
+  app.use(cookieParser());
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

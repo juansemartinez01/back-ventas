@@ -22,9 +22,23 @@ export class ProductoService {
     return prod;
   }
 
-  create(dto: CreateProductoDto): Promise<Producto> {
+  async create(dto: CreateProductoDto): Promise<Producto> {
     const prod = this.repo.create(dto);
-    return this.repo.save(prod);
+    const saved = await this.repo.save(prod);
+
+    // 2) Recargar con relaciones para devolver el mismo payload que GET
+    const producto = await this.repo.findOne({
+      where: { id: saved.id },
+      relations: [
+        'unidad',
+        'tipoProducto',
+        
+        // añade aquí otras relaciones si las tienes:
+        // 'stockActual', 'parametrosReorden', etc.
+      ],
+    });
+    if (!producto) throw new NotFoundException(`Producto ${saved.id} no encontrado`);
+    return producto;
   }
 
   async update(id: number, dto: UpdateProductoDto): Promise<Producto> {
