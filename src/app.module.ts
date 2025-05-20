@@ -24,6 +24,7 @@ import { VentasMensualesModule } from './ventas-mensuales/ventas-mensuales.modul
 import { ConfiguracionHorariaModule } from './configuracion-horaria/configuracion-horaria.module';
 import { ProductosMasVendidosModule } from './productos-mas-vendidos/productos-mas-vendidos.module';
 import { AuthModule } from './auth/auth.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -88,6 +89,8 @@ import { AuthModule } from './auth/auth.module';
     ProductosMasVendidosModule,
 
     AuthModule,
+
+    FilesModule,
 
     // …aquí vendrán después los módulos de tus entidades
   ],

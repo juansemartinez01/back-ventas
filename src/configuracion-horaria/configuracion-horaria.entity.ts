@@ -8,6 +8,9 @@ export class ConfiguracionHoraria {
   @Column({ length: 20 })
   dia: string;
 
+  // @Column({ name: 'id_dia', type: 'int' })
+  // idDia?: number;
+
   @Column({ name: 'hora_inicio', type: 'time' })
   horaInicio: string;
 

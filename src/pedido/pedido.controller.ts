@@ -1,13 +1,18 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe } from '@nestjs/common';
 import { PedidoService } from './pedido.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { Pedido } from './pedido.entity';
+import { ItemPedido } from 'src/item-pedido/item-pedido.entity';
+import { ItemPedidoService } from 'src/item-pedido/item-pedido.service';
+import { Producto } from 'src/producto/producto.entity';
 
 @Controller('pedidos')
 export class PedidoController {
-  constructor(private readonly service: PedidoService) {}
-
+  constructor(
+    private readonly service: PedidoService,
+    private readonly ItemPedidoService: ItemPedidoService,
+  ) {}
   @Get()
   getAll(): Promise<Pedido[]> {
     return this.service.findAll();
@@ -34,5 +39,20 @@ export class PedidoController {
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
     return this.service.remove(+id);
+  }
+
+  /**
+   * GET /pedidos/:pedidoId/items
+   * Devuelve [ { pedido, productos: […] } ]
+   */
+  @Get(':pedidoId/items')
+  async getItemsByPedido(
+    @Param('pedidoId', ParseIntPipe) pedidoId: number,
+  ): Promise<Array<{
+    pedido: Pedido;
+    productos: Array<Producto & { cantidad: number; precio_unitario: string }>;
+  }>> {
+    const grouped = await this.ItemPedidoService.findGroupedByPedidoId(pedidoId);
+    return [grouped];
   }
 }
