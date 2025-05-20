@@ -40,10 +40,10 @@ import { FilesModule } from './files/files.module';
         password: config.get<string>('DB_PASS'),
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,    // Carga automáticamente las entidades de los forFeature()
-        synchronize: true,      // en dev true, en prod false
+        synchronize: false,      // en dev true, en prod false
+        migrationsRun: false,  // no correr automáticamente
         migrations: ['dist/migrations/*.js'],
-        // opcionalmente:
-        // logging: true,
+        entities: ['dist/**/*.entity.js'],
       }),
       inject: [ConfigService],
     }),

@@ -18,9 +18,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "typeorm": "ts-node --transpile-only ./node_modules/typeorm/cli.js -d ./data-source.ts",
-    "migration:generate": "npm run typeorm -- migration:generate src/migrations/InitSchema",
-    "migration:run": "npm run typeorm -- migration:run"
+    "typeorm": "ts-node --transpileOnly -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:generate": "npm run typeorm -- -d src/data-source.ts migration:generate",
+    "migration:run":      "npm run typeorm -- -d src/data-source.ts migration:run"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -53,7 +53,7 @@
     "@swc/core": "^1.10.7",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.15.17",
+    "@types/node": "^22.15.19",
     "@types/supertest": "^6.0.2",
     "cross-env": "^7.0.3",
     "eslint": "^9.18.0",
@@ -68,8 +68,8 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typeorm": "^0.3.23",
-    "typescript": "^5.7.3",
+    "typeorm": "^0.3.24",
+    "typescript": "^5.8.3",
     "typescript-eslint": "^8.20.0"
   },
   "jest": {

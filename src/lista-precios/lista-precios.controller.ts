@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe } from '@nestjs/common';
 import { ListaPreciosService } from './lista-precios.service';
 import { CreateListaPreciosDto } from './dto/create-lista-precios.dto';
 import { UpdateListaPreciosDto } from './dto/update-lista-precios.dto';
 import { ListaPrecios } from './lista-precios.entity';
+import { Producto } from 'src/producto/producto.entity';
+
+type ProductoConPrecio = Omit<Producto, 'preciosEnListas'> & {
+  precio_unitario: string;
+};
 
 @Controller('listas-precios')
 export class ListaPreciosController {
@@ -34,5 +39,12 @@ export class ListaPreciosController {
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
     return this.service.remove(+id);
+  }
+
+  @Get(':listaId/productos')
+  listarProductosPorLista(
+    @Param('listaId', ParseIntPipe) listaId: number,
+  ): Promise<ProductoConPrecio[]> {
+    return this.service.getProductosByListaId(listaId);
   }
 }

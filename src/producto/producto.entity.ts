@@ -6,9 +6,11 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Unidad } from '../unidad/unidad.entity';
 import { TipoProducto } from '../tipo-producto/tipo-producto.entity';
+import { PrecioProductoLista } from 'src/precio-producto-lista/precio-producto-lista.entity';
 
 @Entity('productos')
 export class Producto {
@@ -64,4 +66,7 @@ export class Producto {
 
   @Column({ name: 'id_interno', length: 100, unique: true })
   id_interno: string;
+
+  @OneToMany(() => PrecioProductoLista, ppl => ppl.producto)
+  preciosEnListas?: PrecioProductoLista[];
 }

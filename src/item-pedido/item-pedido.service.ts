@@ -6,12 +6,22 @@ import { CreateItemPedidoDto } from './dto/create-item-pedido.dto';
 import { UpdateItemPedidoDto } from './dto/update-item-pedido.dto';
 import { Pedido } from 'src/pedido/pedido.entity';
 import { Producto } from 'src/producto/producto.entity';
+import { PrecioProductoLista } from 'src/precio-producto-lista/precio-producto-lista.entity';
+
+
+// 1) Creamos un tipo que no exige preciosEnListas
+type ProductoConCantidad = Omit<Producto, 'preciosEnListas'> & {
+  cantidad: number;
+  precio_unitario: string;
+};
 
 @Injectable()
 export class ItemPedidoService {
   constructor(
     @InjectRepository(ItemPedido)
     private readonly repo: Repository<ItemPedido>,
+    @InjectRepository(PrecioProductoLista)
+    private readonly precioListaRepo: Repository<PrecioProductoLista>,
   ) {}
 
   findAll(): Promise<ItemPedido[]> {
@@ -45,9 +55,9 @@ export class ItemPedidoService {
    *  - productos: array de productos + cantidad + precio_unitario
    */
   async findGroupedByPedidoId(pedidoId: number): Promise<{
-    pedido: Pedido;
-    productos: Array<Producto & { cantidad: number; precio_unitario: string }>;
-  }> {
+  pedido: Pedido;
+  productos: ProductoConCantidad[];
+}> {
     const items = await this.repo.find({
       where: { pedidoId },
       relations: [
@@ -64,35 +74,55 @@ export class ItemPedidoService {
       throw new NotFoundException(`No se encontraron items para el pedido ${pedidoId}`);
     }
 
-    // Sólo una vez tomamos el pedido completo
+    // 2) Extraigo el pedido y la lista de precios asignada al cliente (puede ser null)
     const { pedido } = items[0];
+    const listaId = pedido.cliente.listaPreciosId;
 
-    // dentro de tu método en el service, asumiendo que “items” está cargado con todas las relaciones:
-const productos = items.map(item => {
-  const p = item.producto;
+    // 3) Si hay lista, cargo todos sus precios de una sola vez
+    let entradasDePrecio: PrecioProductoLista[] = [];
+    if (listaId) {
+      entradasDePrecio = await this.precioListaRepo.find({
+        where: { listaId },
+      });
+    }
+    // Construyo un map productoId → precioUnitario
+    const precioMap = new Map<number, number>();
+    for (const e of entradasDePrecio) {
+      precioMap.set(e.productoId, e.precioUnitario);
+    }
 
-  return {
-    id: p.id,
-    nombre: p.nombre,
-    precio_base: p.precio_base,
-    unidadId: p.unidadId,
-    unidad: p.unidad,
-    tipoProductoId: p.tipoProductoId,
-    tipoProducto: p.tipoProducto,
-    descripcion: p.descripcion,
-    vacio: p.vacio,
-    oferta: p.oferta,
-    precio_oferta: p.precio_oferta,
-    activo: p.activo,
-    imagen: p.imagen,
-    precioVacio: p.precioVacio,
-    created_at: p.created_at,
-    updated_at: p.updated_at,
-    id_interno: p.id_interno,
+    // 4) Mapear items a ProductoConCantidad, eligiendo:
+    //    - precio de lista si existe
+    //    - o precio_base del producto
+    const productos: ProductoConCantidad[] = items.map(item => {
+      const p = item.producto;
+      const precioDeLista = precioMap.get(p.id);
+      const precio_unitario = precioDeLista != null
+        ? precioDeLista.toString()
+        : p.precio_base.toString();
+    return {
+      // todas las props de Producto excepto 'preciosEnListas'
+      id: p.id,
+      nombre: p.nombre,
+      precio_base: p.precio_base,
+      unidadId: p.unidadId,
+      unidad: p.unidad,
+      tipoProductoId: p.tipoProductoId,
+      tipoProducto: p.tipoProducto,
+      descripcion: p.descripcion,
+      vacio: p.vacio,
+      oferta: p.oferta,
+      precio_oferta: p.precio_oferta,
+      activo: p.activo,
+      imagen: p.imagen,
+      precioVacio: p.precioVacio,
+      created_at: p.created_at,
+      updated_at: p.updated_at,
+      id_interno: p.id_interno,
 
-    // campos propios del item
-    cantidad: item.cantidad,
-    precio_unitario: String(item.precio_unitario),
+      // campos del item
+      cantidad: item.cantidad,
+      precio_unitario: item.precio_unitario.toString(),
   };
 });
 

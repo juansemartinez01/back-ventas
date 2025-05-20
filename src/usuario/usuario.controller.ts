@@ -3,6 +3,7 @@ import { UsuarioService } from './usuario.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { Usuario } from './usuario.entity';
+import { Public } from '../auth/isPublic';
 
 @Controller('usuarios')
 export class UsuarioController {
@@ -18,6 +19,7 @@ export class UsuarioController {
     return this.service.findOne(+id);
   }
 
+  @Public()
   @Post()
   create(@Body() dto: CreateUsuarioDto): Promise<Usuario> {
     return this.service.create(dto);
@@ -36,3 +38,5 @@ export class UsuarioController {
     return this.service.remove(+id);
   }
 }
+
+
