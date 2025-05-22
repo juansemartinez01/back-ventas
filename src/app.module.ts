@@ -25,6 +25,9 @@ import { ConfiguracionHorariaModule } from './configuracion-horaria/configuracio
 import { ProductosMasVendidosModule } from './productos-mas-vendidos/productos-mas-vendidos.module';
 import { AuthModule } from './auth/auth.module';
 import { FilesModule } from './files/files.module';
+import { AlmacenModule } from './almacen/almacen.module';
+import { StockActualModule } from './stock-actual/stock-actual.module';
+import { MovimientoStockModule } from './movimiento-stock/movimiento-stock.module';
 
 @Module({
   imports: [
@@ -40,10 +43,11 @@ import { FilesModule } from './files/files.module';
         password: config.get<string>('DB_PASS'),
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,    // Carga automáticamente las entidades de los forFeature()
-        synchronize: false,      // en dev true, en prod false
+        
         migrationsRun: false,  // no correr automáticamente
         migrations: ['dist/migrations/*.js'],
-        entities: ['dist/**/*.entity.js'],
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true,
       }),
       inject: [ConfigService],
     }),
@@ -91,6 +95,11 @@ import { FilesModule } from './files/files.module';
     AuthModule,
 
     FilesModule,
+
+    
+    AlmacenModule,
+    StockActualModule,
+    MovimientoStockModule,
 
     // …aquí vendrán después los módulos de tus entidades
   ],

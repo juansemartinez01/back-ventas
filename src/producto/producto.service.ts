@@ -13,11 +13,42 @@ export class ProductoService {
   ) {}
 
   findAll(): Promise<Producto[]> {
-    return this.repo.find();
+    return this.repo.find({
+      relations: [
+        'unidad',
+        'tipoProducto',
+        'stocksActuales',        // ← traemos el stock actual
+        // 'movimientosStock',   // ← si además quieres los movimientos
+      ],
+    });
   }
 
+  // findOne(id: number): Promise<Producto> {
+  //   return this.repo.findOne({
+  //     where: { id },
+  //     relations: [
+  //       'unidad',
+  //       'tipoProducto',
+  //       'stocksActuales',        // ← aquí también
+  //       // 'movimientosStock',
+  //     ],
+  //   });
+  // }
+
+  // findAll(): Promise<Producto[]> {
+  //   return this.repo.find();
+  // }
+
   async findOne(id: number): Promise<Producto> {
-    const prod = await this.repo.findOneBy({ id });
+    const prod = await this.repo.findOne({
+       where: { id },
+       relations: [
+         'unidad',
+         'tipoProducto',
+         'stocksActuales',        // ← aquí también
+         // 'movimientosStock',
+       ],
+     });
     if (!prod) throw new NotFoundException(`Producto ${id} no encontrado`);
     return prod;
   }
@@ -32,6 +63,7 @@ export class ProductoService {
       relations: [
         'unidad',
         'tipoProducto',
+        
         
         // añade aquí otras relaciones si las tienes:
         // 'stockActual', 'parametrosReorden', etc.

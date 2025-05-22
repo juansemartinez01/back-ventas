@@ -54,6 +54,8 @@ export class ListaPreciosService {
         'producto',
         'producto.unidad',
         'producto.tipoProducto',
+        'producto.stocksActuales',
+        'producto.movimientosStock',
       ],
       order: { productoId: 'ASC' },
     });
@@ -81,6 +83,8 @@ export class ListaPreciosService {
       created_at:    r.producto.created_at,
       updated_at:    r.producto.updated_at,
       id_interno:    r.producto.id_interno,
+      stocksActuales: r.producto.stocksActuales,
+      movimientosStock: r.producto.movimientosStock,
 
       // Campo extra: precio en la lista
       precio_unitario: r.precioUnitario.toString(),

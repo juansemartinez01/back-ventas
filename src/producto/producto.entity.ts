@@ -11,6 +11,8 @@ import {
 import { Unidad } from '../unidad/unidad.entity';
 import { TipoProducto } from '../tipo-producto/tipo-producto.entity';
 import { PrecioProductoLista } from 'src/precio-producto-lista/precio-producto-lista.entity';
+import { MovimientoStock } from 'src/movimiento-stock/movimiento-stock.entity';
+import { StockActual } from 'src/stock-actual/stock-actual.entity';
 
 @Entity('productos')
 export class Producto {
@@ -69,4 +71,12 @@ export class Producto {
 
   @OneToMany(() => PrecioProductoLista, ppl => ppl.producto)
   preciosEnListas?: PrecioProductoLista[];
+
+  // —— Relación al stock actual ——
+  @OneToMany(() => StockActual, sa => sa.producto, { cascade: true })
+  stocksActuales: StockActual[];
+
+  // —— Relación a movimientos de stock ——
+  @OneToMany(() => MovimientoStock, ms => ms.producto, { cascade: true })
+  movimientosStock: MovimientoStock[];
 }

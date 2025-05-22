@@ -5,7 +5,8 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColum
 @Entity('usuarios')
 export class Usuario {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number;// auto-incremental
+  
 
   @Column({ length: 255 })
   nombre: string;

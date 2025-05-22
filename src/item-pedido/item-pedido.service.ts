@@ -67,6 +67,8 @@ export class ItemPedidoService {
         'producto',
         'producto.unidad',
         'producto.tipoProducto',
+        'producto.stocksActuales',
+        'producto.movimientosStock',
       ],
     });
 
@@ -94,35 +96,38 @@ export class ItemPedidoService {
     // 4) Mapear items a ProductoConCantidad, eligiendo:
     //    - precio de lista si existe
     //    - o precio_base del producto
-    const productos: ProductoConCantidad[] = items.map(item => {
-      const p = item.producto;
-      const precioDeLista = precioMap.get(p.id);
-      const precio_unitario = precioDeLista != null
-        ? precioDeLista.toString()
-        : p.precio_base.toString();
-    return {
-      // todas las props de Producto excepto 'preciosEnListas'
-      id: p.id,
-      nombre: p.nombre,
-      precio_base: p.precio_base,
-      unidadId: p.unidadId,
-      unidad: p.unidad,
-      tipoProductoId: p.tipoProductoId,
-      tipoProducto: p.tipoProducto,
-      descripcion: p.descripcion,
-      vacio: p.vacio,
-      oferta: p.oferta,
-      precio_oferta: p.precio_oferta,
-      activo: p.activo,
-      imagen: p.imagen,
-      precioVacio: p.precioVacio,
-      created_at: p.created_at,
-      updated_at: p.updated_at,
-      id_interno: p.id_interno,
+const productos: ProductoConCantidad[] = items.map(item => {
+  const p = item.producto;
+  const precioDeLista = precioMap.get(p.id);
+  const precio_unitario = precioDeLista != null
+    ? precioDeLista.toString()
+    : p.precio_base.toString();
+  return {
+    // todas las props de Producto excepto 'preciosEnListas'
+    id: p.id,
+    nombre: p.nombre,
+    precio_base: p.precio_base,
+    unidadId: p.unidadId,
+    unidad: p.unidad,
+    tipoProductoId: p.tipoProductoId,
+    tipoProducto: p.tipoProducto,
+    descripcion: p.descripcion,
+    vacio: p.vacio,
+    oferta: p.oferta,
+    precio_oferta: p.precio_oferta,
+    activo: p.activo,
+    imagen: p.imagen,
+    precioVacio: p.precioVacio,
+    created_at: p.created_at,
+    updated_at: p.updated_at,
+    id_interno: p.id_interno,
+    stocksActuales: p.stocksActuales,
+    movimientosStock: p.movimientosStock,
 
-      // campos del item
-      cantidad: item.cantidad,
-      precio_unitario: item.precio_unitario.toString(),
+    // campos del item
+    itemPedidoId:    item.id,
+    cantidad: item.cantidad,
+    precio_unitario: precio_unitario,
   };
 });
 
