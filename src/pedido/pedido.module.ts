@@ -6,12 +6,14 @@ import { PedidoController } from './pedido.controller';
 import { ItemPedidoService } from 'src/item-pedido/item-pedido.service';
 import { ItemPedido } from 'src/item-pedido/item-pedido.entity';
 import { PrecioProductoLista } from 'src/precio-producto-lista/precio-producto-lista.entity';
+import { StockActual } from 'src/stock-actual/stock-actual.entity';
+import { ItemPedidoController } from 'src/item-pedido/item-pedido.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Pedido]),
-  TypeOrmModule.forFeature([ItemPedido,PrecioProductoLista]),
+  TypeOrmModule.forFeature([ItemPedido,PrecioProductoLista,StockActual]),
 ],
   providers: [PedidoService,ItemPedidoService],
-  controllers: [PedidoController],
+  controllers: [PedidoController,ItemPedidoController],
 })
 export class PedidoModule {}

@@ -8,9 +8,12 @@ export function cookieExtractor(req: Request): string | null {
   // lee la cookie llamada 'jwt'
   return req?.cookies?.jwt ?? null;
 }
+// src/auth/jwt.strategy.ts
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(configService: ConfigService) {
+
+    console.log('JwtStrategy inicializada');
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
       ignoreExpiration: false,
@@ -19,7 +22,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    // payload.sub, payload.usuario, payload.roles
     return { id: payload.sub, usuario: payload.usuario, roles: payload.roles };
   }
 }

@@ -55,4 +55,9 @@ export class CreateProductoDto {
 
   @IsNumber() @Min(0) @IsOptional()
   precioVacio?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  empresa?: string;
 }

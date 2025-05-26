@@ -1,12 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { ItemPedido } from './item-pedido.entity';
 import { CreateItemPedidoDto } from './dto/create-item-pedido.dto';
 import { UpdateItemPedidoDto } from './dto/update-item-pedido.dto';
 import { Pedido } from 'src/pedido/pedido.entity';
 import { Producto } from 'src/producto/producto.entity';
 import { PrecioProductoLista } from 'src/precio-producto-lista/precio-producto-lista.entity';
+import { StockActual } from 'src/stock-actual/stock-actual.entity';
 
 
 // 1) Creamos un tipo que no exige preciosEnListas
@@ -22,6 +23,10 @@ export class ItemPedidoService {
     private readonly repo: Repository<ItemPedido>,
     @InjectRepository(PrecioProductoLista)
     private readonly precioListaRepo: Repository<PrecioProductoLista>,
+    @InjectRepository(StockActual)
+    private readonly stockRepo: Repository<StockActual>,
+
+    private readonly dataSource: DataSource,  // para transacciones
   ) {}
 
   findAll(): Promise<ItemPedido[]> {
@@ -34,9 +39,46 @@ export class ItemPedidoService {
     return item;
   }
 
-  create(dto: CreateItemPedidoDto): Promise<ItemPedido> {
-    const item = this.repo.create(dto);
-    return this.repo.save(item);
+  /**
+   * Crea el item de pedido y descuenta inmediatamente del stock actual.
+   * Lanza error si no hay suficiente stock o el registro no existe.
+   */
+  async create(dto: CreateItemPedidoDto): Promise<ItemPedido> {
+    return this.dataSource.transaction(async manager => {
+      // 1) Creo y guardo el ItemPedido
+      const item = manager.getRepository(ItemPedido).create(dto);
+      const savedItem = await manager.getRepository(ItemPedido).save(item);
+
+      // 2) Busco el primer registro de stock_actual con suficiente cantidad
+      const stock = await manager
+        .getRepository(StockActual)
+        .createQueryBuilder('stock')
+        .where('stock.producto_id = :productoId', {
+          productoId: dto.productoId,
+        })
+        .andWhere('stock.cantidad >= :cantidad', { cantidad: dto.cantidad })
+        .orderBy('stock.last_updated', 'ASC')      // si querés FIFO por fecha
+        .getOne();
+
+      if (!stock) {
+        throw new NotFoundException(
+          `No hay stock suficiente para el producto ${dto.productoId}`
+        );
+      }
+
+      // 3) Verifico disponibilidad
+      if (stock.cantidad < dto.cantidad) {
+        throw new BadRequestException(
+          `Stock insuficiente: hay ${stock.cantidad} unidades disponibles`
+        );
+      }
+
+      // 4) Ajusto y guardo el nuevo stock
+      stock.cantidad -= dto.cantidad;
+      await manager.getRepository(StockActual).save(stock);
+
+      return savedItem;
+    });
   }
 
   async update(id: number, dto: UpdateItemPedidoDto): Promise<ItemPedido> {
@@ -99,9 +141,7 @@ export class ItemPedidoService {
 const productos: ProductoConCantidad[] = items.map(item => {
   const p = item.producto;
   const precioDeLista = precioMap.get(p.id);
-  const precio_unitario = precioDeLista != null
-    ? precioDeLista.toString()
-    : p.precio_base.toString();
+  const precio_unitario = item.precio_unitario.toString();
   return {
     // todas las props de Producto excepto 'preciosEnListas'
     id: p.id,
@@ -123,6 +163,7 @@ const productos: ProductoConCantidad[] = items.map(item => {
     id_interno: p.id_interno,
     stocksActuales: p.stocksActuales,
     movimientosStock: p.movimientosStock,
+    empresa: p.empresa,
 
     // campos del item
     itemPedidoId:    item.id,

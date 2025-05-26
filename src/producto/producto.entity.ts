@@ -79,4 +79,7 @@ export class Producto {
   // —— Relación a movimientos de stock ——
   @OneToMany(() => MovimientoStock, ms => ms.producto, { cascade: true })
   movimientosStock: MovimientoStock[];
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  empresa?: string;
 }

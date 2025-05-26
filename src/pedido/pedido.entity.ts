@@ -13,15 +13,9 @@ export class Pedido {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'cliente_id', type: 'int' })
-  clienteId: number;
-
   @ManyToOne(() => Cliente, { eager: true })
   @JoinColumn({ name: 'cliente_id' })
   cliente: Cliente;
-
-  @Column({ name: 'usuario_id', type: 'int' })
-  usuarioId: number;
 
   @ManyToOne(() => Usuario, { eager: true })
   @JoinColumn({ name: 'usuario_id' })
@@ -36,15 +30,9 @@ export class Pedido {
   @Column({ length: 50 })
   estado: string;
 
-  @Column({ name: 'armador_id', type: 'int', nullable: true })
-  armadorId?: number;
-
   @ManyToOne(() => Usuario, { eager: true, nullable: true })
   @JoinColumn({ name: 'armador_id' })
   armador?: Usuario;
-
-  @Column({ name: 'entregador_id', type: 'int', nullable: true })
-  entregadorId?: number;
 
   @ManyToOne(() => Usuario, { eager: true, nullable: true })
   @JoinColumn({ name: 'entregador_id' })

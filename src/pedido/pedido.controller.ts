@@ -6,6 +6,7 @@ import { Pedido } from './pedido.entity';
 import { ItemPedido } from 'src/item-pedido/item-pedido.entity';
 import { ItemPedidoService } from 'src/item-pedido/item-pedido.service';
 import { Producto } from 'src/producto/producto.entity';
+import { CreatePedidoWithItemsDto } from './dto/create-pedido-with-items.dto';
 
 @Controller('pedidos')
 export class PedidoController {
@@ -26,6 +27,13 @@ export class PedidoController {
   @Post()
   create(@Body() dto: CreatePedidoDto): Promise<Pedido> {
     return this.service.create(dto);
+  }
+
+  @Post('nuevo-pedido-con-items')
+  async createWithItems(
+    @Body() dto: CreatePedidoWithItemsDto,
+  ): Promise<Pedido> {
+    return this.service.createWithItems(dto);
   }
 
   @Put(':id')
