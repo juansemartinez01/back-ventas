@@ -14,22 +14,19 @@ export class MovimientoStock {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'producto_id', type: 'int' })
-  producto_id: number;
+  
 
   @ManyToOne(() => Producto)
   @JoinColumn({ name: 'producto_id' })
   producto: Producto;
 
-  @Column({ name: 'origen_almacen', type: 'int', nullable: true })
-  origen_almacen?: number;
+  
 
   @ManyToOne(() => Almacen)
   @JoinColumn({ name: 'origen_almacen' })
   almacenOrigen?: Almacen;
 
-  @Column({ name: 'destino_almacen', type: 'int', nullable: true })
-  destino_almacen?: number;
+  
 
   @ManyToOne(() => Almacen)
   @JoinColumn({ name: 'destino_almacen' })

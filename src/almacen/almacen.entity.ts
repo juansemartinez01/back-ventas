@@ -17,11 +17,11 @@ export class Almacen {
   capacidad?: number;
 
   // Movimientos donde este almacén es el origen
-  @OneToMany(() => MovimientoStock, ms => ms.origen_almacen)
+  @OneToMany(() => MovimientoStock, ms => ms.almacenOrigen)
   movimientosOrigen: MovimientoStock[];
 
   // Movimientos donde este almacén es el destino
-  @OneToMany(() => MovimientoStock, ms => ms.destino_almacen)
+  @OneToMany(() => MovimientoStock, ms => ms.almacenDestino)
   movimientosDestino: MovimientoStock[];
 
   // Stock actual en este almacén

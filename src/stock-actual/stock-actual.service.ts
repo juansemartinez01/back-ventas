@@ -1,15 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { StockActual } from './stock-actual.entity';
 import { CreateStockActualDto } from './dto/create-stock-actual.dto';
 import { UpdateStockActualDto } from './dto/update-stock-actual.dto';
+import { MovimientoStock } from 'src/movimiento-stock/movimiento-stock.entity';
+import { AgregarStockDto } from './dto/agregar-stock.dto';
 
 @Injectable()
 export class StockActualService {
   constructor(
     @InjectRepository(StockActual)
     private readonly repo: Repository<StockActual>,
+    private readonly dataSource: DataSource,
   ) {}
 
   findAll(): Promise<StockActual[]> {
@@ -85,4 +88,47 @@ export class StockActualService {
     // 3) Guarda y devuelve el registro actualizado
     return this.repo.save(stock);
   }
+
+  async agregarStock(dto: AgregarStockDto): Promise<void> {
+  await this.dataSource.transaction(async manager => {
+    const { productoId, almacenId, cantidad, usuarioId } = dto;
+
+    // 1) Crear el movimiento de stock
+    const movimiento = manager.getRepository(MovimientoStock).create({
+      producto: productoId,
+      origenAlmacen: null,
+      destinoAlmacen: almacenId,
+      cantidad,
+      tipo: 'entrada',
+      fecha: new Date(),
+      usuario_id: usuarioId,
+      motivo: 'Ingreso manual de stock',
+    } as unknown as MovimientoStock);
+    await manager.getRepository(MovimientoStock).save(movimiento);
+
+    // 2) Buscar el stock actual
+    let stock = await manager.getRepository(StockActual).findOne({
+      where: {
+        producto: { id: productoId },
+        almacen: { id: almacenId },
+      },
+    });
+
+    // 3) Si no existe, crearlo; si existe, actualizar
+    if (!stock) {
+      stock = manager.getRepository(StockActual).create({
+        producto: { id: productoId },
+        almacen: { id: almacenId },
+        cantidad,
+        lastUpdated: new Date(),
+      } as unknown as StockActual);
+    } else {
+      stock.cantidad += cantidad;
+      stock.last_updated = new Date();
+    }
+
+    await manager.getRepository(StockActual).save(stock);
+  });
+}
+
 }

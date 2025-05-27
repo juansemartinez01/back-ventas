@@ -6,22 +6,13 @@ import {
   IsDateString,
   IsOptional,
 } from 'class-validator';
+import { CreatePedidoWithItemsDto } from 'src/pedido/dto/create-pedido-with-items.dto';
 
-export class CreatePedidoManualDto {
-  @IsInt()
-  clienteId: number;
-
-  @IsInt()
-  usuarioId: number;
-
+export class CreatePedidoManualDto extends CreatePedidoWithItemsDto {
   @IsString()
   @IsNotEmpty()
   mensajeOriginal: string;
 
   @IsDateString()
   fechaCarga: string;
-
-  @IsInt()
-  @IsOptional()
-  pedidoId?: number;
 }

@@ -126,13 +126,16 @@ export class ItemPedidoService {
     let entradasDePrecio: PrecioProductoLista[] = [];
     if (listaId) {
       entradasDePrecio = await this.precioListaRepo.find({
-        where: { listaId },
+        where: { lista: { id: listaId } }
       });
     }
     // Construyo un map productoId → precioUnitario
     const precioMap = new Map<number, number>();
     for (const e of entradasDePrecio) {
-      precioMap.set(e.productoId, e.precioUnitario);
+      precioMap.set(
+        typeof e.producto === 'number' ? e.producto : e.producto.id,
+        e.precioUnitario
+      );
     }
 
     // 4) Mapear items a ProductoConCantidad, eligiendo:

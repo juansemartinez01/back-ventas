@@ -1,4 +1,4 @@
-import { IsInt, Min, IsNumber } from 'class-validator';
+import { IsInt, Min, IsNumber, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreatePrecioProductoListaDto {
   @IsInt()
@@ -10,4 +10,13 @@ export class CreatePrecioProductoListaDto {
   @IsNumber()
   @Min(0)
   precioUnitario: number;
+
+  @IsBoolean()
+  @IsOptional()
+  oferta?: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  precio_oferta?: number;
 }

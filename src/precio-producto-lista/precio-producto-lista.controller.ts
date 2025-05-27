@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
 import { PrecioProductoListaService } from './precio-producto-lista.service';
 import { CreatePrecioProductoListaDto } from './dto/create-precio-producto-lista.dto';
 import { UpdatePrecioProductoListaDto } from './dto/update-precio-producto-lista.dto';
@@ -31,5 +31,13 @@ export class PrecioProductoListaController {
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
     return this.service.remove(+id);
+  }
+
+  @Delete()
+  async eliminarPorProductoYLista(
+    @Query('listaId') listaId: number,
+    @Query('productoId') productoId: number
+  ) {
+    return this.service.eliminarPorProductoYLista(listaId, productoId);
   }
 }

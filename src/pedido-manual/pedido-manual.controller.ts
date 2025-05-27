@@ -18,10 +18,7 @@ export class PedidoManualController {
     return this.service.findOne(+id);
   }
 
-  @Post()
-  create(@Body() dto: CreatePedidoManualDto): Promise<PedidoManual> {
-    return this.service.create(dto);
-  }
+  
 
   @Put(':id')
   update(
@@ -35,4 +32,10 @@ export class PedidoManualController {
   remove(@Param('id') id: string): Promise<void> {
     return this.service.remove(+id);
   }
+
+  @Post()
+  createManual(@Body() dto: CreatePedidoManualDto) {
+    return this.service.createManual(dto);
+  }
+
 }

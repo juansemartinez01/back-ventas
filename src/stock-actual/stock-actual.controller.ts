@@ -11,6 +11,7 @@ import { StockActualService } from './stock-actual.service';
 import { CreateStockActualDto } from './dto/create-stock-actual.dto';
 import { UpdateStockActualDto } from './dto/update-stock-actual.dto';
 import { StockActual } from './stock-actual.entity';
+import { AgregarStockDto } from './dto/agregar-stock.dto';
 
 @Controller('stock-actual')
 export class StockActualController {
@@ -50,4 +51,10 @@ export class StockActualController {
   ): Promise<void> {
     return this.service.remove(+productoId, +almacenId);
   }
+
+  @Post('agregar-stock')
+    async agregarStock(@Body() dto: AgregarStockDto) {
+    return this.service.agregarStock(dto);
+  }
+
 }

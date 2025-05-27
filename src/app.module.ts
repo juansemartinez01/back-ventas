@@ -101,7 +101,7 @@ import { MovimientoStockModule } from './movimiento-stock/movimiento-stock.modul
     StockActualModule,
     MovimientoStockModule,
 
-    // …aquí vendrán después los módulos de tus entidades
+    
   ],
   controllers: [AppController],
   providers: [AppService],

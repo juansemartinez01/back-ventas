@@ -48,18 +48,21 @@ export class ListaPreciosService {
   }
 
   async getProductosByListaId(listaId: number): Promise<ProductoConPrecio[]> {
-    const registros = await this.pplRepo.find({
-      where: { listaId },
-      relations: [
-        'producto',
-        'producto.unidad',
-        'producto.tipoProducto',
-        'producto.stocksActuales',
-        'producto.movimientosStock',
-      ],
-      order: { productoId: 'ASC' },
-    });
-
+  const registros = await this.pplRepo.find({
+    where: { lista: { id: listaId } },
+    relations: [
+      'producto',
+      'producto.unidad',
+      'producto.tipoProducto',
+      'producto.stocksActuales',
+      'producto.movimientosStock',
+    ],
+    order: {
+      producto: {
+        nombre: 'ASC', // asumimos que querés ordenar por nombre
+      },
+    },
+  });
     if (!registros.length) {
       throw new NotFoundException(`La lista de precios ${listaId} no existe o está vacía.`);
     }
@@ -75,8 +78,8 @@ export class ListaPreciosService {
       tipoProducto:  r.producto.tipoProducto,
       descripcion:   r.producto.descripcion,
       vacio:         r.producto.vacio,
-      oferta:        r.producto.oferta,
-      precio_oferta: r.producto.precio_oferta,
+      //oferta:        r.producto.oferta,
+      //precio_oferta: r.producto.precio_oferta,
       activo:        r.producto.activo,
       imagen:        r.producto.imagen,
       precioVacio:   r.producto.precioVacio,
@@ -88,6 +91,8 @@ export class ListaPreciosService {
 
       // Campo extra: precio en la lista
       precio_unitario: r.precioUnitario.toString(),
+      oferta: r.oferta,
+      precio_oferta: r.precioOferta
     }));
   }
 }

@@ -7,15 +7,13 @@ export class PrecioProductoLista {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'lista_id', type: 'int' })
-  listaId: number;
+  
 
   @ManyToOne(() => ListaPrecios, { eager: true })
   @JoinColumn({ name: 'lista_id' })
   lista: ListaPrecios;
 
-  @Column({ name: 'producto_id', type: 'int' })
-  productoId: number;
+  
 
   @ManyToOne(() => Producto, { eager: true })
   @JoinColumn({ name: 'producto_id' })
@@ -23,4 +21,11 @@ export class PrecioProductoLista {
 
   @Column('decimal', { name: 'precio_unitario', precision: 12, scale: 2 })
   precioUnitario: number;
+
+  @Column({ default: false })
+  oferta: boolean;
+
+  @Column('decimal', { name: 'precio_oferta', precision: 12, scale: 2, nullable: true })
+  precioOferta?: number;
+
 }

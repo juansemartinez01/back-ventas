@@ -14,15 +14,13 @@ export class PedidoManual {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'cliente_id', type: 'int' })
-  clienteId: number;
+  
 
   @ManyToOne(() => Cliente, { eager: true })
   @JoinColumn({ name: 'cliente_id' })
   cliente: Cliente;
 
-  @Column({ name: 'usuario_id', type: 'int' })
-  usuarioId: number;
+  
 
   @ManyToOne(() => Usuario, { eager: true })
   @JoinColumn({ name: 'usuario_id' })
@@ -34,8 +32,7 @@ export class PedidoManual {
   @Column({ name: 'fecha_carga', type: 'timestamp' })
   fechaCarga: Date;
 
-  @Column({ name: 'pedido_id', type: 'int', nullable: true })
-  pedidoId?: number;
+  
 
   @ManyToOne(() => Pedido, { eager: true, nullable: true })
   @JoinColumn({ name: 'pedido_id' })
