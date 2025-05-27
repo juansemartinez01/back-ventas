@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { PedidoManual } from './pedido-manual.entity';
@@ -82,13 +82,21 @@ export class PedidoManualService {
       await manager.getRepository(StockActual).save(stock);
     }
 
+    const fechaValida = dto.fechaCarga ? new Date(dto.fechaCarga) : new Date();
+    if (isNaN(fechaValida.getTime())) {
+      throw new BadRequestException('La fechaCarga no es válida');
+    }
+
+
+
     // 3) Crear el pedido manual asociado
     const pedidoManual = manager.getRepository(PedidoManual).create({
       cliente: { id: dto.clienteId },
       usuario: { id: dto.usuarioId },
-      mensajeOriginal: dto.mensajeOriginal,
-      fechaCarga: new Date(dto.fechaCarga),
+      mensajeOriginal: "Pedido manual creado",
+      fechaCarga: fechaValida,
       pedido: savedPedido,
+      nombreCliente: dto.nombreCliente,
     });
 
     await manager.getRepository(PedidoManual).save(pedidoManual);

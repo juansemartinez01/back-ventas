@@ -13,6 +13,11 @@ export class CreatePedidoManualDto extends CreatePedidoWithItemsDto {
   @IsNotEmpty()
   mensajeOriginal: string;
 
+  @IsOptional()
   @IsDateString()
-  fechaCarga: string;
+  fechaCarga?: string;
+
+  @IsOptional()
+  @IsString()
+  nombreCliente?: string;
 }

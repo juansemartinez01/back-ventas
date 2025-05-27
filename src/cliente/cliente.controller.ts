@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
 import { ClienteService } from './cliente.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { Cliente } from './cliente.entity';
 import { Roles } from 'src/auth/roles.decorator';
+import { BuscarClientesDto } from './dto/buscar-clientes.dto';
 
 @Controller('clientes')
 export class ClienteController {
@@ -13,6 +14,11 @@ export class ClienteController {
   @Roles('Admin')
   getAll(): Promise<Cliente[]> {
     return this.service.findAll();
+  }
+
+  @Get('buscar')
+    buscar(@Query() params: BuscarClientesDto) {
+  return this.service.buscarPorNombreOTelefono(params.q || '');
   }
 
   @Get(':id')
@@ -39,4 +45,7 @@ export class ClienteController {
   remove(@Param('id') id: string): Promise<void> {
     return this.service.remove(+id);
   }
+
+  
+
 }

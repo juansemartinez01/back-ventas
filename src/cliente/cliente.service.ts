@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Cliente } from './cliente.entity';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
@@ -36,4 +36,16 @@ export class ClienteService {
     const result = await this.repo.delete(id);
     if (result.affected === 0) throw new NotFoundException(`Cliente ${id} no encontrado`);
   }
+
+  async buscarPorNombreOTelefono(query: string): Promise<Cliente[]> {
+  return this.repo.find({
+    where: [
+      { nombre: ILike(`%${query}%`) },
+      { telefono: ILike(`%${query}%`) }
+    ],
+    take: 10, // límite opcional
+    order: { nombre: 'ASC' }
+  });
+}
+
 }

@@ -37,4 +37,8 @@ export class PedidoManual {
   @ManyToOne(() => Pedido, { eager: true, nullable: true })
   @JoinColumn({ name: 'pedido_id' })
   pedido?: Pedido;
+
+  @Column({ name: 'nombre_cliente', type: 'varchar', nullable: true })
+  nombreCliente?: string;
+
 }
