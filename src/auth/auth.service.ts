@@ -31,10 +31,16 @@ export class AuthService {
 
     // Quitar el hash y la relación interna
     const { clave_hash, roles: _, ...rest } = user;
+
+    await this.usuarioService.update(user.id, {
+      ultimoLogin: new Date()
+    });
+
     return {
       ...rest,
       roles,              // ej: ['Admin','Vendedor']
     };
+
   }
 
   /** Genera y devuelve el JWT */

@@ -1,4 +1,5 @@
-import { IsString, IsNotEmpty, MaxLength, IsEmail, IsInt, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsNotEmpty, MaxLength, IsEmail, IsInt, IsOptional, IsDate, IsBoolean } from 'class-validator';
 
 export class CreateUsuarioDto {
   @IsString()
@@ -19,4 +20,19 @@ export class CreateUsuarioDto {
 
   @IsInt() @IsOptional()
   clienteId?: number;
+
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  ultimoLogin?: Date;
+
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  ultimaCompra?: Date;
+
+  @IsOptional()
+  @IsBoolean()
+  activo?: boolean;
+
 }

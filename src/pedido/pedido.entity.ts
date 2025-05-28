@@ -4,9 +4,11 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Cliente } from '../cliente/cliente.entity';
 import { Usuario } from '../usuario/usuario.entity';
+import { ItemPedido } from 'src/item-pedido/item-pedido.entity';
 
 @Entity('pedidos')
 export class Pedido {
@@ -40,4 +42,7 @@ export class Pedido {
 
   @Column({ name: 'estado_pago', length: 50 })
   estadoPago: string;
+
+  @OneToMany(() => ItemPedido, item => item.pedido, { cascade: true })
+  items: ItemPedido[];
 }

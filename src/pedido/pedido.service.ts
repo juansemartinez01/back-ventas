@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Pedido } from './pedido.entity';
@@ -7,6 +7,7 @@ import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { ItemPedido } from 'src/item-pedido/item-pedido.entity';
 import { StockActual } from 'src/stock-actual/stock-actual.entity';
 import { CreatePedidoWithItemsDto } from './dto/create-pedido-with-items.dto';
+import { UsuarioService } from 'src/usuario/usuario.service';
 
 @Injectable()
 export class PedidoService {
@@ -21,6 +22,8 @@ export class PedidoService {
     private readonly stockRepo: Repository<StockActual>,
 
     private readonly dataSource: DataSource,
+
+    private readonly usuarioService: UsuarioService,
   ) {}
 
   findAll(): Promise<Pedido[]> {
@@ -95,8 +98,55 @@ export class PedidoService {
         stock.cantidad -= it.cantidad;
         await manager.getRepository(StockActual).save(stock);
       }
+      // 3) Actualizar última compra del usuario
+      await this.usuarioService.update(dto.usuarioId, {
+      ultimaCompra: new Date()
+      });
 
       return savedPedido;
     });
   }
+
+  async cancelarPedido(pedidoId: number): Promise<Pedido> {
+  return this.dataSource.transaction(async manager => {
+    // 1) Traer el pedido con sus ítems
+    const pedido = await manager.getRepository(Pedido).findOne({
+      where: { id: pedidoId },
+      relations: ['items', 'items.producto'],
+    });
+
+    if (!pedido) {
+      throw new NotFoundException(`Pedido ${pedidoId} no encontrado`);
+    }
+
+    if (pedido.estado === 'cancelado') {
+      throw new BadRequestException(`El pedido ${pedidoId} ya fue cancelado`);
+    }
+
+    // 2) Revertir stock por cada ítem
+    for (const item of pedido.items) {
+      // Buscar el stock actual
+      const stock = await manager.getRepository(StockActual).findOne({
+        where: { producto: { id: item.producto.id } }
+      });
+
+      if (!stock) {
+        throw new NotFoundException(
+          `No se encontró stock para el producto ${item.producto.id}`
+        );
+      }
+
+      // Sumar la cantidad nuevamente
+      stock.cantidad += item.cantidad;
+      await manager.getRepository(StockActual).save(stock);
+    }
+
+    // 3) Marcar pedido como cancelado
+    pedido.estado = 'cancelado';
+    await manager.getRepository(Pedido).save(pedido);
+
+    return pedido;
+  });
+}
+
 }

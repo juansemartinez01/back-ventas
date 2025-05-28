@@ -36,6 +36,11 @@ export class PedidoController {
     return this.service.createWithItems(dto);
   }
 
+  @Put(':id/cancelar')
+  async cancelar(@Param('id', ParseIntPipe) id: number) {
+    return this.service.cancelarPedido(id);
+  }
+
   @Put(':id')
   update(
     @Param('id') id: string,

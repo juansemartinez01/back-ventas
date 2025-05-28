@@ -29,4 +29,13 @@ export class Usuario {
   @ManyToOne(() => Cliente, c => c.usuarios, { nullable: true })
   @JoinColumn({ name: 'cliente_id' })
   cliente?: Cliente;
+
+  @Column({ name: 'ultimo_login', type: 'timestamp', nullable: true })
+  ultimoLogin?: Date;
+
+  @Column({ name: 'ultima_compra', type: 'timestamp', nullable: true })
+  ultimaCompra?: Date;
+
+  @Column({ default: true })
+  activo: boolean;
 }
