@@ -119,7 +119,7 @@ export class PedidoService {
       throw new NotFoundException(`Pedido ${pedidoId} no encontrado`);
     }
 
-    if (pedido.estado === 'cancelado') {
+    if (pedido.estado === 'Cancelado') {
       throw new BadRequestException(`El pedido ${pedidoId} ya fue cancelado`);
     }
 
@@ -142,7 +142,7 @@ export class PedidoService {
     }
 
     // 3) Marcar pedido como cancelado
-    pedido.estado = 'cancelado';
+    pedido.estado = 'Cancelado';
     await manager.getRepository(Pedido).save(pedido);
 
     return pedido;
