@@ -42,9 +42,35 @@ export class PedidoService {
   }
 
   async update(id: number, dto: UpdatePedidoDto): Promise<Pedido> {
-    await this.pedidoRepo.update(id, dto as any);
-    return this.findOne(id);
-  }
+  const pedido = await this.findOne(id);
+
+  if (dto.clienteId !== undefined)
+    pedido.cliente = { id: dto.clienteId } as any;
+
+  if (dto.usuarioId !== undefined)
+    pedido.usuario = { id: dto.usuarioId } as any;
+
+  if (dto.armadorId !== undefined)
+    pedido.armador = { id: dto.armadorId } as any;
+
+  if (dto.entregadorId !== undefined)
+    pedido.entregador = { id: dto.entregadorId } as any;
+
+  if (dto.fechaHora !== undefined)
+    pedido.fechaHora = new Date(dto.fechaHora);
+
+  if (dto.canal !== undefined)
+    pedido.canal = dto.canal;
+
+  if (dto.estado !== undefined)
+    pedido.estado = dto.estado;
+
+  if (dto.estadoPago !== undefined)
+    pedido.estadoPago = dto.estadoPago;
+
+  return this.pedidoRepo.save(pedido);
+}
+
 
   async remove(id: number): Promise<void> {
     const res = await this.pedidoRepo.delete(id);
