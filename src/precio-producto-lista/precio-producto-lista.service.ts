@@ -48,21 +48,23 @@ export class PrecioProductoListaService {
   return this.repo.save(entity);
 }
 
-  async update(id: number, dto: UpdatePrecioProductoListaDto): Promise<PrecioProductoLista> {
-  const entity = await this.findOne(id);
+  async update(listaId: number, productoId: number, dto: UpdatePrecioProductoListaDto): Promise<PrecioProductoLista> {
+  const entity = await this.repo.findOne({
+    where: {
+      lista: { id: listaId },
+      producto: { id: productoId },
+    },
+    relations: ['lista', 'producto'],
+  });
 
-  // Actualizar los campos manualmente
+  if (!entity) {
+    throw new NotFoundException(`No se encontró el precio del producto ${productoId} en la lista ${listaId}`);
+  }
+
+  // Actualización segura de campos
   if (dto.precioUnitario !== undefined) entity.precioUnitario = dto.precioUnitario;
   if (dto.oferta !== undefined) entity.oferta = dto.oferta;
   if (dto.precio_oferta !== undefined) entity.precioOferta = dto.precio_oferta;
-
-  // Si querés permitir cambiar producto/lista:
-  if (dto.listaId !== undefined) {
-    entity.lista = { id: dto.listaId } as any;
-  }
-  if (dto.productoId !== undefined) {
-    entity.producto = { id: dto.productoId } as any;
-  }
 
   return this.repo.save(entity);
 }

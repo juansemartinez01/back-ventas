@@ -23,10 +23,15 @@ export class PrecioProductoListaController {
     return this.service.create(dto);
   }
 
-  @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdatePrecioProductoListaDto): Promise<PrecioProductoLista> {
-    return this.service.update(+id, dto);
+  @Put(':listaId/:productoId')
+  update(
+    @Param('listaId') listaId: string,
+    @Param('productoId') productoId: string,
+    @Body() dto: UpdatePrecioProductoListaDto
+  ): Promise<PrecioProductoLista> {
+    return this.service.update(+listaId, +productoId, dto);
   }
+
 
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
