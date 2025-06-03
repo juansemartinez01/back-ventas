@@ -22,7 +22,7 @@ COPY --from=builder /usr/src/app/package.json ./
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 # Variables de entorno
-ENV NODE_ENV=production
+ENV NODE_ENV=docker
 
 # Puerto expuesto
 EXPOSE 3000

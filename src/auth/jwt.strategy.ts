@@ -10,14 +10,12 @@ export function cookieExtractor(req: Request): string | null {
 }
 // src/auth/jwt.strategy.ts
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
-
-    console.log('JwtStrategy inicializada');
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'tu_secreto_super_seguro',
+      secretOrKey: configService.get<string>('JWT_SECRET'),
     });
   }
 
