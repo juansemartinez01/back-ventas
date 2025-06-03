@@ -68,6 +68,10 @@ export class UsuarioService {
     user.clave_hash = await bcrypt.hash(dto.password, 10);
   }
 
+  if (dto.clienteId !== undefined) {
+    user.clienteId = dto.clienteId;
+  }
+
   return this.repo.save(user);
 }
 
