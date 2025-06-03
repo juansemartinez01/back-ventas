@@ -5,6 +5,7 @@ import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { Public } from './isPublic';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -13,23 +14,23 @@ export class AuthController {
 
 
   
-  @Public() // Decorador para marcar la ruta como pública
-  @UseGuards(LocalAuthGuard)
+  @Public()
+  @UseGuards(LocalAuthGuard) // ✅ Usa Local para autenticar con usuario/contraseña
   @Post('login')
   async login(@Req() req, @Body() dto: LoginDto,@Res({ passthrough: true }) res: Response) {
     // req.user ya incluye { id, usuario, nombre, email, roles }
     const { access_token, user } = await this.authService.login(req.user);
 
     // 1) Poner cookie 'jwt', HttpOnly y segura
-    res.cookie('jwt', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // sólo HTTPS en prod
-      sameSite: 'lax',
-      maxAge: 12 * 60 * 60 * 1000,  // 12 horas
-    });
+    // res.cookie('jwt', access_token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production', // sólo HTTPS en prod
+    //   sameSite: 'lax',
+    //   maxAge: 12 * 60 * 60 * 1000,  // 12 horas
+    // });
 
     
-    return { user };
+    return { access_token,user };
   }
 
   @UseGuards(JwtAuthGuard)
