@@ -47,7 +47,7 @@ export class FilesController {
       const result = await this.cloudinary.api.resources({
         type: 'upload', // Solo imágenes subidas por el usuario
         prefix: 'uploads/', // Opcional: Filtrar por carpeta específica
-        max_results: 30, // Número de imágenes a obtener
+        max_results: 500, // Número de imágenes a obtener
       });
 
       return result.resources.map((file) => ({

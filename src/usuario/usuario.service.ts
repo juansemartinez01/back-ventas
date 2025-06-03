@@ -47,9 +47,31 @@ export class UsuarioService {
 }
 
   async update(id: number, dto: UpdateUsuarioDto): Promise<Usuario> {
-    await this.repo.update(id, dto as any);
-    return this.findOne(id);
+  const user = await this.repo.findOneBy({ id });
+  if (!user) {
+    throw new Error('Usuario no encontrado');
   }
+
+  if (dto.nombre !== undefined) {
+    user.nombre = dto.nombre;
+  }
+
+  if (dto.usuario !== undefined) {
+    user.usuario = dto.usuario;
+  }
+
+  if (dto.email !== undefined) {
+    user.email = dto.email;
+  }
+
+  if (dto.password !== undefined) {
+    user.clave_hash = await bcrypt.hash(dto.password, 10);
+  }
+
+  return this.repo.save(user);
+}
+
+
 
   async remove(id: number): Promise<void> {
     const res = await this.repo.delete(id);

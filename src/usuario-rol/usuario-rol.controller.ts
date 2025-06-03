@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, ParseIntPipe } from '@nestjs/common';
 import { UsuarioRolService } from './usuario-rol.service';
 import { CreateUsuarioRolDto } from './dto/create-usuario-rol.dto';
 import { UpdateUsuarioRolDto } from './dto/update-usuario-rol.dto';
@@ -31,5 +31,14 @@ export class UsuarioRolController {
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
     return this.service.remove(+id);
+  }
+
+  @Delete()
+  async deleteByUsuarioAndRol(
+    @Query('usuarioId', ParseIntPipe) usuarioId: number,
+    @Query('rolId', ParseIntPipe) rolId: number,
+  ): Promise<{ message: string }> {
+    await this.service.removeByUsuarioAndRol(usuarioId, rolId);
+    return { message: `Rol ${rolId} eliminado del usuario ${usuarioId}` };
   }
 }

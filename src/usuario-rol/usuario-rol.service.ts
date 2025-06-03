@@ -40,4 +40,16 @@ export class UsuarioRolService {
     if (res.affected === 0)
       throw new NotFoundException(`UsuarioRol ${id} no encontrado`);
   }
+
+  async removeByUsuarioAndRol(usuarioId: number, rolId: number): Promise<void> {
+    const usuarioRol = await this.repo.findOne({
+      where: { usuarioId, rolId },
+    });
+
+    if (!usuarioRol) {
+      throw new NotFoundException(`La relación usuario ${usuarioId} con rol ${rolId} no existe`);
+    }
+
+    await this.repo.remove(usuarioRol);
+  }
 }

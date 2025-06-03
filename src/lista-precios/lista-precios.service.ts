@@ -8,7 +8,7 @@ import { Producto } from 'src/producto/producto.entity';
 import { PrecioProductoLista } from 'src/precio-producto-lista/precio-producto-lista.entity';
 
 // Tipo que devolverá el endpoint
-type ProductoConPrecio = Omit<Producto, 'preciosEnListas'> & {
+type ProductoConPrecio = Omit<Producto, 'preciosEnListas' | 'movimientosStock'> & {
   precio_unitario: string;
 };
 
@@ -87,7 +87,7 @@ export class ListaPreciosService {
       updated_at:    r.producto.updated_at,
       id_interno:    r.producto.id_interno,
       stocksActuales: r.producto.stocksActuales,
-      movimientosStock: r.producto.movimientosStock,
+      
 
       // Campo extra: precio en la lista
       precio_unitario: r.precioUnitario.toString(),

@@ -66,7 +66,7 @@ export class Producto {
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
 
-  @Column({ name: 'id_interno', length: 100, unique: true })
+  @Column({ name: 'id_interno', length: 100, unique: false })
   id_interno: string;
 
   @OneToMany(() => PrecioProductoLista, ppl => ppl.producto)

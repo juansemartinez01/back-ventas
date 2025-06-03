@@ -5,7 +5,8 @@ import { UpdateListaPreciosDto } from './dto/update-lista-precios.dto';
 import { ListaPrecios } from './lista-precios.entity';
 import { Producto } from 'src/producto/producto.entity';
 
-type ProductoConPrecio = Omit<Producto, 'preciosEnListas'> & {
+// Tipo que devolverá el endpoint
+type ProductoConPrecio = Omit<Producto, 'preciosEnListas' | 'movimientosStock'> & {
   precio_unitario: string;
 };
 
