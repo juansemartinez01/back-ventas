@@ -5,23 +5,22 @@ if (!globalThis.crypto) {
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
-import { Reflector }    from '@nestjs/core';
+import { Reflector } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
-
-
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  
   app.enableCors({
     origin: 'http://localhost:3001', // o true para permitir todos los orígenes (no recomendado en producción)
-    credentials: true, // si usas cookies o autenticación con tokens en headers
+    // URL de tu frontend
+    methods: 'POST,GET,PUT,DELETE', // Asegúrate de incluir POST
+    //credentials: true,
+    allowedHeaders: 'Content-Type,Authorization',
   });
   const reflector = app.get(Reflector);
   // <— Aquí aplicamos el guard de JWT a todo, pero respetando @Public()
 
-  
   app.useGlobalGuards(new JwtAuthGuard(reflector));
   app.use(cookieParser());
   await app.listen(process.env.PORT ?? 3000);
