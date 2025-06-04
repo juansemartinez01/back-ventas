@@ -35,4 +35,9 @@ export class CreateUsuarioDto {
   @IsBoolean()
   activo?: boolean;
 
+  @IsOptional()
+  @IsInt({ each: true })
+  roles?: number[];
+
+
 }

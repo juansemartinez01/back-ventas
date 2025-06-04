@@ -1,16 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Usuario } from './usuario.entity';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import * as bcrypt from 'bcrypt';
+import { UsuarioRol } from 'src/usuario-rol/usuario-rol.entity';
 
 @Injectable()
 export class UsuarioService {
   constructor(
     @InjectRepository(Usuario)
     private readonly repo: Repository<Usuario>,
+    private readonly dataSource: DataSource, // Inyectamos DataSource para usar el repositorio de UsuarioRol
   ) {}
 
   
@@ -40,15 +42,27 @@ export class UsuarioService {
   const user = new Usuario();
   user.nombre = dto.nombre;
   user.usuario = dto.usuario;
-  if (dto.email !== undefined) {
-    user.email = dto.email;
-  }else {
-    user.email = "Email no registrado"; // si no se proporciona email, usamos el usuario como email
-  }
-  // generamos el hash aquí
+  user.email = dto.email !== undefined ? dto.email : "Email no registrado";
   user.clave_hash = await bcrypt.hash(dto.password, 10);
-  return this.repo.save(user);
+
+  // Guardar usuario sin roles
+  const savedUser = await this.repo.save(user);
+
+  // Si vienen roles en el dto, crear UsuarioRol[]
+  if (dto.roles && dto.roles.length > 0) {
+    const rolesUsuario: UsuarioRol[] = dto.roles.map(rolId => {
+      const usuarioRol = new UsuarioRol();
+      usuarioRol.usuario = savedUser;
+      usuarioRol.rol = { id: rolId } as any; // asignamos solo el id del rol
+      return usuarioRol;
+    });
+
+    await this.dataSource.getRepository(UsuarioRol).save(rolesUsuario);
+  }
+
+  return savedUser;
 }
+
 
   async update(id: number, dto: UpdateUsuarioDto): Promise<Usuario> {
   const user = await this.repo.findOneBy({ id });
