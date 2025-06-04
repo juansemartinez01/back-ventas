@@ -19,6 +19,11 @@ export class PedidoController {
     return this.service.findAll();
   }
 
+  @Get('con-nombre-manual')
+  getPedidosConNombreClienteManual() {
+    return this.service.obtenerTodosConNombreClienteManual();
+  }
+
   @Get(':id')
   getOne(@Param('id') id: string): Promise<Pedido> {
     return this.service.findOne(+id);
@@ -54,6 +59,7 @@ export class PedidoController {
     return this.service.remove(+id);
   }
 
+  
   /**
    * GET /pedidos/:pedidoId/items
    * Devuelve [ { pedido, productos: […] } ]

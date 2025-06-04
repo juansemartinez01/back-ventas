@@ -8,6 +8,7 @@ import { ItemPedido } from 'src/item-pedido/item-pedido.entity';
 import { StockActual } from 'src/stock-actual/stock-actual.entity';
 import { CreatePedidoWithItemsDto } from './dto/create-pedido-with-items.dto';
 import { UsuarioService } from 'src/usuario/usuario.service';
+import { PedidoManual } from 'src/pedido-manual/pedido-manual.entity';
 
 @Injectable()
 export class PedidoService {
@@ -174,5 +175,40 @@ export class PedidoService {
     return pedido;
   });
 }
+
+  async obtenerTodosConNombreClienteManual() {
+  // 1. Traigo todos los pedidos con sus relaciones normales
+  const pedidos = await this.pedidoRepo.find({
+    relations: ['cliente', 'usuario', 'armador', 'entregador'],
+    order: { id: 'ASC' },
+  });
+
+  // 2. Traigo los pedidos_manuales con sus campos reales de BD
+  const pedidosManualesRaw = await this.dataSource
+    .getRepository(PedidoManual)
+    .createQueryBuilder('pm')
+    .select([
+      'pm.pedido_id AS pedido_id',
+      'pm.nombre_cliente AS nombre_cliente',
+    ])
+    .getRawMany();
+
+  // 3. Indexo los nombre_cliente por pedido_id
+  const nombreManualPorPedidoId = new Map<number, string>();
+  for (const pm of pedidosManualesRaw) {
+    if (pm.pedido_id !== null && pm.nombre_cliente !== null) {
+      nombreManualPorPedidoId.set(Number(pm.pedido_id), pm.nombre_cliente);
+    }
+  }
+
+  // 4. Devuelvo los pedidos agregando el campo nombreClienteManual si aplica
+  return pedidos.map(pedido => ({
+    ...pedido,
+    nombreClienteManual: nombreManualPorPedidoId.get(pedido.id) ?? null,
+  }));
+  }
+
+
+
 
 }
