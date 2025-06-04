@@ -19,18 +19,18 @@ export class UsuarioService {
   async findByUsername(usuario: string): Promise<Usuario | null> {
     return this.repo.findOne({
       where: { usuario },
-      relations: ['roles', 'roles.rol'],
+      relations: ['roles', 'roles.rol','cliente'],
     });
   }
 
   findAll(): Promise<Usuario[]> {
-    return this.repo.find({ relations: ['roles', 'roles.rol'] });
+    return this.repo.find({ relations: ['roles', 'roles.rol','cliente'] });
   }
 
   async findOne(id: number): Promise<Usuario> {
     const user = await this.repo.findOne({
       where: { id },
-      relations: ['roles', 'roles.rol'],
+      relations: ['roles', 'roles.rol','cliente'],
     });
     if (!user) throw new NotFoundException(`Usuario ${id} no encontrado`);
     return user;
@@ -40,7 +40,11 @@ export class UsuarioService {
   const user = new Usuario();
   user.nombre = dto.nombre;
   user.usuario = dto.usuario;
-  user.email = dto.email;
+  if (dto.email !== undefined) {
+    user.email = dto.email;
+  }else {
+    user.email = "Email no registrado"; // si no se proporciona email, usamos el usuario como email
+  }
   // generamos el hash aquí
   user.clave_hash = await bcrypt.hash(dto.password, 10);
   return this.repo.save(user);
