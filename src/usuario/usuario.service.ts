@@ -72,6 +72,10 @@ export class UsuarioService {
     user.clienteId = dto.clienteId;
   }
 
+  if (dto.activo !== undefined) {
+    user.activo = dto.activo;
+  }
+
   return this.repo.save(user);
 }
 
