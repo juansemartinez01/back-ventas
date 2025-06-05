@@ -19,11 +19,16 @@ export class UsuarioService {
 
   // For authentication: find by username and include roles
   async findByUsername(usuario: string): Promise<Usuario | null> {
-    return this.repo.findOne({
-      where: { usuario },
-      relations: ['roles', 'roles.rol','cliente'],
-    });
-  }
+  const normalizado = usuario.trim().toUpperCase().replace(/\s+/g, '');
+
+  return this.repo
+    .createQueryBuilder('usuario')
+    .leftJoinAndSelect('usuario.roles', 'roles')
+    .leftJoinAndSelect('roles.rol', 'rol')
+    .leftJoinAndSelect('usuario.cliente', 'cliente')
+    .where("REPLACE(UPPER(usuario.usuario), ' ', '') = :normalizado", { normalizado })
+    .getOne();
+}
 
   findAll(): Promise<Usuario[]> {
     return this.repo.find({ relations: ['roles', 'roles.rol','cliente'] });
