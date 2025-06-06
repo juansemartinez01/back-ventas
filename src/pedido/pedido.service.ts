@@ -9,6 +9,7 @@ import { StockActual } from 'src/stock-actual/stock-actual.entity';
 import { CreatePedidoWithItemsDto } from './dto/create-pedido-with-items.dto';
 import { UsuarioService } from 'src/usuario/usuario.service';
 import { PedidoManual } from 'src/pedido-manual/pedido-manual.entity';
+import { Producto } from 'src/producto/producto.entity';
 
 @Injectable()
 export class PedidoService {
@@ -116,10 +117,20 @@ export class PedidoService {
           .getOne();
 
         if (!stock) {
+          const producto = await manager.getRepository(Producto).findOneBy({ id: it.productoId });
+          const stockReal = await manager
+            .getRepository(StockActual)
+            .createQueryBuilder('stock')
+            .select('SUM(stock.cantidad)', 'cantidad')
+            .where('stock.producto_id = :productoId', { productoId: it.productoId })
+            .getRawOne();
+
+          const cantidadDisponible = stockReal?.cantidad ?? 0;
           throw new NotFoundException(
-            `No hay stock suficiente para el producto ${it.productoId}`
+            `No hay stock suficiente para el producto ${producto?.nombre ?? it.productoId}. El stock actual es ${cantidadDisponible}.`
           );
         }
+
 
         // 2.3) Descontar y guardar
         stock.cantidad -= it.cantidad;
