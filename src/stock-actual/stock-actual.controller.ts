@@ -69,10 +69,20 @@ export class StockActualController {
   };
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // async handleResetStockDiario() {
+  //   const result = await this.resetStock();
+  //   console.log(`Stock reseteado a 4000 en ${result.updated} registros`);
+  // }
+
+  @Cron('*/1 * * * *') // Cada minuto
   async handleResetStockDiario() {
-    const result = await this.resetStock();
-    console.log(`Stock reseteado a 4000 en ${result.updated} registros`);
+    try {
+      const result = await this.resetStock();
+      console.log(`⏰ [CRON TEST] Stock reseteado a 4000 en ${result.updated} registros`);
+    } catch (error) {
+      console.error('❌ Error al resetear stock:', error);
+    }
   }
 
 }

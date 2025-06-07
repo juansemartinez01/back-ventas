@@ -28,6 +28,8 @@ import { FilesModule } from './files/files.module';
 import { AlmacenModule } from './almacen/almacen.module';
 import { StockActualModule } from './stock-actual/stock-actual.module';
 import { MovimientoStockModule } from './movimiento-stock/movimiento-stock.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { StockActualService } from './stock-actual/stock-actual.service';
 
 @Module({
   imports: [
@@ -52,6 +54,7 @@ import { MovimientoStockModule } from './movimiento-stock/movimiento-stock.modul
       }),
       inject: [ConfigService],
     }),
+    ScheduleModule.forRoot(),
 
     ClienteModule,
 
@@ -105,6 +108,6 @@ import { MovimientoStockModule } from './movimiento-stock/movimiento-stock.modul
     
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,StockActualService],
 })
 export class AppModule {}

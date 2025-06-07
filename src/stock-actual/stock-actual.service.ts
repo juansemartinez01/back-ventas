@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { StockActual } from './stock-actual.entity';
@@ -7,15 +7,21 @@ import { UpdateStockActualDto } from './dto/update-stock-actual.dto';
 import { MovimientoStock } from 'src/movimiento-stock/movimiento-stock.entity';
 import { AgregarStockDto } from './dto/agregar-stock.dto';
 import { Producto } from '../producto/producto.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
-export class StockActualService {
+export class StockActualService implements OnModuleInit {
   constructor(
     @InjectRepository(StockActual)
     private readonly repo: Repository<StockActual>,
     private readonly dataSource: DataSource,
   ) {}
+  onModuleInit() {
+    console.log('StockActualService inicializado y crons activos');
+  }
 
+
+  
   findAll(): Promise<StockActual[]> {
     return this.repo.find({ relations: ['producto', 'almacen'] });
   }
@@ -133,6 +139,20 @@ export class StockActualService {
 }
 
 //Metodo que agrega 4000 unidades de stock a todos los productos en el almacén 1 todos los días a las 00:00
+  /**
+   * Resetea el stock diario a 4000 unidades para todos los productos del almacén 1.
+   * Este método se ejecuta automáticamente todos los días a la medianoche.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async handleResetStockDiario() {
+  console.log('⏰ [CRON] Ejecutando tarea de reseteo de stock...');
+  try {
+    const result = await this.resetStockDiario();
+    console.log(`✅ [CRON] Stock reseteado a 4000 en ${result.updated} registros`);
+  } catch (error) {
+    console.error('❌ [CRON] Error al resetear stock automáticamente:', error);
+  }
+}
 
 
 async resetStockDiario(): Promise<{ updated: number; totalProductos: number; message: string }> {
