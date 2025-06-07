@@ -6,6 +6,7 @@ import { CreateStockActualDto } from './dto/create-stock-actual.dto';
 import { UpdateStockActualDto } from './dto/update-stock-actual.dto';
 import { MovimientoStock } from 'src/movimiento-stock/movimiento-stock.entity';
 import { AgregarStockDto } from './dto/agregar-stock.dto';
+import { Producto } from '../producto/producto.entity';
 
 @Injectable()
 export class StockActualService {
@@ -130,5 +131,46 @@ export class StockActualService {
     await manager.getRepository(StockActual).save(stock);
   });
 }
+
+//Metodo que agrega 4000 unidades de stock a todos los productos en el almacén 1 todos los días a las 00:00
+
+
+async resetStockDiario(): Promise<{ updated: number; totalProductos: number; message: string }> {
+  // 1. Contar productos totales
+  const totalProductos = await this.dataSource
+    .getRepository(Producto)
+    .count();
+
+  // 2. Ejecutar el UPDATE
+  const result = await this.repo
+    .createQueryBuilder()
+    .update()
+    .set({ cantidad: 4000 })
+    .where("almacen_id = :almacenId", { almacenId: 1 })
+    .execute();
+
+  const updated = result.affected || 0;
+
+  // 3. Determinar el mensaje
+  let message = '';
+  if (updated === totalProductos) {
+    message = '✅ La cantidad fue actualizada en todos los productos del almacén.';
+  } else if (updated > totalProductos) {
+    message = '⚠️ Se actualizaron más registros de los que hay en la tabla productos.';
+  } else {
+    message = '⚠️ No todos los productos tienen stock cargado para este almacén.';
+  }
+
+  console.log(message);
+
+  return {
+    updated,
+    totalProductos,
+    message,
+  };
+}
+
+
+
 
 }

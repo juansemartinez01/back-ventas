@@ -12,6 +12,7 @@ import { CreateStockActualDto } from './dto/create-stock-actual.dto';
 import { UpdateStockActualDto } from './dto/update-stock-actual.dto';
 import { StockActual } from './stock-actual.entity';
 import { AgregarStockDto } from './dto/agregar-stock.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Controller('stock-actual')
 export class StockActualController {
@@ -55,6 +56,23 @@ export class StockActualController {
   @Post('agregar-stock')
     async agregarStock(@Body() dto: AgregarStockDto) {
     return this.service.agregarStock(dto);
+  }
+
+  // Endpoint para resetear el stock diario a 4000 en todos los productos
+  // Este endpoint no recibe parámetros, simplemente resetea el stock de todos los productos a 4000
+  @Put('reset-diario')
+  async resetStock(): Promise<{ message: string; updated: number }> {
+  const result = await this.service.resetStockDiario();
+  return {
+    message: 'Stock reseteado a 4000 en todos los productos',
+    updated: result.updated,
+  };
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async handleResetStockDiario() {
+    const result = await this.resetStock();
+    console.log(`Stock reseteado a 4000 en ${result.updated} registros`);
   }
 
 }
