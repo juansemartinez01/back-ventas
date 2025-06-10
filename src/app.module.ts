@@ -30,6 +30,7 @@ import { StockActualModule } from './stock-actual/stock-actual.module';
 import { MovimientoStockModule } from './movimiento-stock/movimiento-stock.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { StockActualService } from './stock-actual/stock-actual.service';
+import { EstadisticasModule } from './estadisticas/estadisticas.module';
 
 @Module({
   imports: [
@@ -104,6 +105,7 @@ import { StockActualService } from './stock-actual/stock-actual.service';
     AlmacenModule,
     StockActualModule,
     MovimientoStockModule,
+    EstadisticasModule,
 
     
   ],
