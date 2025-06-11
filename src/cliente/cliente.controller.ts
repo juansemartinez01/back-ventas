@@ -5,6 +5,7 @@ import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { Cliente } from './cliente.entity';
 import { Roles } from 'src/auth/roles.decorator';
 import { BuscarClientesDto } from './dto/buscar-clientes.dto';
+import { CreateClienteUsuarioDto } from './dto/create-cliente-usuario.dto';
 
 @Controller('clientes')
 export class ClienteController {
@@ -25,6 +26,15 @@ export class ClienteController {
   @Roles('Admin')
   getOne(@Param('id') id: string): Promise<Cliente> {
     return this.service.findOne(+id);
+  }
+
+  /**
+   * POST /clientes/con-usuario
+   * Crea cliente + usuario en una sola llamada.
+   */
+  @Post('con-usuario')
+  createConUsuario(@Body() dto: CreateClienteUsuarioDto) {
+    return this.service.createConUsuario(dto);
   }
 
   @Post()
