@@ -12,6 +12,10 @@ export class ProductoService {
     private readonly repo: Repository<Producto>,
   ) {}
 
+  async onModuleInit() {
+  await this.normalizarNombresProductos();
+  }
+
   findAll(): Promise<Producto[]> {
     return this.repo.find({
       relations: [
@@ -54,6 +58,13 @@ export class ProductoService {
   }
 
   async create(dto: CreateProductoDto): Promise<Producto> {
+
+    // Normalizar el nombre antes de guardar
+    if (dto.nombre) {
+      // Eliminar espacios al inicio y aplicar formato de capitalización
+      const trimmed = dto.nombre.trimStart();
+      dto.nombre = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+    }
     const prod = this.repo.create(dto);
     const saved = await this.repo.save(prod);
 
@@ -83,4 +94,23 @@ export class ProductoService {
     if (res.affected === 0)
       throw new NotFoundException(`Producto ${id} no encontrado`);
   }
+
+  async normalizarNombresProductos(): Promise<void> {
+  const productos = await this.repo.find();
+
+  for (const prod of productos) {
+    if (prod.nombre) {
+      const trimmed = prod.nombre.trimStart();
+      const normalizado = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+
+      // Solo actualiza si hay un cambio real
+      if (prod.nombre !== normalizado) {
+        prod.nombre = normalizado;
+        await this.repo.save(prod); // Guarda los cambios
+      }
+    }
+  }
+
+  console.log(`Se normalizaron los nombres de ${productos.length} productos (cuando aplicaba).`);
+}
 }

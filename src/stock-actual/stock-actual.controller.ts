@@ -75,7 +75,7 @@ export class StockActualController {
   //   console.log(`Stock reseteado a 4000 en ${result.updated} registros`);
   // }
 
-  @Cron('*/1 * * * *') // Cada minuto
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT) 
   async handleResetStockDiario() {
     try {
       const result = await this.resetStock();
