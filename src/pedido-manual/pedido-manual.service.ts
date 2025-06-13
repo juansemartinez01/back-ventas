@@ -50,6 +50,7 @@ export class PedidoManualService {
       armador: dto.armadorId ? { id: dto.armadorId } : null,
       entregador: dto.entregadorId ? { id: dto.entregadorId } : null,
       estadoPago: dto.estadoPago,
+      nota: dto.nota,
     } as Pedido);
 
     const savedPedido = await manager.getRepository(Pedido).save(pedido);

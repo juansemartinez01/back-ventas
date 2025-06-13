@@ -70,6 +70,9 @@ export class PedidoService {
   if (dto.estadoPago !== undefined)
     pedido.estadoPago = dto.estadoPago;
 
+  if (dto.nota !== undefined)
+  pedido.nota = dto.nota;
+
   return this.pedidoRepo.save(pedido);
 }
 
@@ -92,6 +95,7 @@ export class PedidoService {
       armador: dto.armadorId ? { id: dto.armadorId } : null,
       entregador: dto.entregadorId ? { id: dto.entregadorId } : null,
       estadoPago: dto.estadoPago,
+      nota: dto.nota,
     } as Pedido);
 
       const savedPedido = await manager.getRepository(Pedido).save(pedido);

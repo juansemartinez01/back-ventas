@@ -39,4 +39,9 @@ export class CreatePedidoDto {
   @IsNotEmpty()
   @MaxLength(50)
   estadoPago: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  nota?: string;
 }
