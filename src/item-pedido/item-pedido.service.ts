@@ -172,6 +172,7 @@ const productos: ProductoConCantidad[] = items.map(item => {
     itemPedidoId:    item.id,
     cantidad: item.cantidad,
     precio_unitario: precio_unitario,
+    comentario: item.comentario || null, // puede ser null
   };
 });
 

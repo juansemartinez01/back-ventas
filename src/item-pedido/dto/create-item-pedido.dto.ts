@@ -1,4 +1,4 @@
-import { IsInt, Min, IsNumber } from 'class-validator';
+import { IsInt, Min, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateItemPedidoDto {
   @IsInt()
@@ -14,4 +14,8 @@ export class CreateItemPedidoDto {
   @IsNumber()
   @Min(0)
   precio_unitario: number;
+
+  @IsOptional()
+  @IsString()
+  comentario?: string;
 }

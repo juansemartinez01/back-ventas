@@ -26,4 +26,8 @@ export class ItemPedido {
 
   @Column('decimal', { precision: 12, scale: 2 })
   precio_unitario: number;
+
+  @Column({ type: 'text', nullable: true })
+  comentario?: string;
+
 }

@@ -108,6 +108,7 @@ export class PedidoService {
           producto:       { id: it.productoId },
           cantidad:       it.cantidad,
           precio_unitario: it.precio_unitario,
+          comentario:     it.comentario,
         });
         await manager.getRepository(ItemPedido).save(item);
 
