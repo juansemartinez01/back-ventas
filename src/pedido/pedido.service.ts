@@ -188,24 +188,52 @@ export class PedidoService {
   });
 }
 
-  async obtenerTodosConNombreClienteManual() {
-  // 1. Traigo todos los pedidos con sus relaciones normales
-  const pedidos = await this.pedidoRepo.find({
-    relations: ['cliente', 'usuario', 'armador', 'entregador'],
-    order: { id: 'ASC' },
-  });
+  async obtenerTodosConNombreClienteManual(
+  fechaDesde?: string,
+  fechaHasta?: string,
+  estado?: string,
+  clienteId?: number,
+  usuarioId?: number,
+) {
+  const query = this.pedidoRepo.createQueryBuilder('pedido')
+    .leftJoinAndSelect('pedido.cliente', 'cliente')
+    .leftJoinAndSelect('pedido.usuario', 'usuario')
+    .leftJoinAndSelect('pedido.armador', 'armador')
+    .leftJoinAndSelect('pedido.entregador', 'entregador')
+    .orderBy('pedido.id', 'ASC');
 
-  // 2. Traigo los pedidos_manuales con sus campos reales de BD
+  if (fechaDesde) {
+    query.andWhere('pedido.fechaHora >= :fechaDesde', {
+      fechaDesde: new Date(fechaDesde),
+    });
+  }
+
+  if (fechaHasta) {
+    query.andWhere('pedido.fechaHora <= :fechaHasta', {
+      fechaHasta: new Date(fechaHasta),
+    });
+  }
+
+  if (estado) {
+    query.andWhere('pedido.estado = :estado', { estado });
+  }
+
+  if (clienteId) {
+    query.andWhere('pedido.cliente.id = :clienteId', { clienteId });
+  }
+
+  if (usuarioId) {
+    query.andWhere('pedido.usuario.id = :usuarioId', { usuarioId });
+  }
+
+  const pedidos = await query.getMany();
+
   const pedidosManualesRaw = await this.dataSource
     .getRepository(PedidoManual)
     .createQueryBuilder('pm')
-    .select([
-      'pm.pedido_id AS pedido_id',
-      'pm.nombre_cliente AS nombre_cliente',
-    ])
+    .select(['pm.pedido_id AS pedido_id', 'pm.nombre_cliente AS nombre_cliente'])
     .getRawMany();
 
-  // 3. Indexo los nombre_cliente por pedido_id
   const nombreManualPorPedidoId = new Map<number, string>();
   for (const pm of pedidosManualesRaw) {
     if (pm.pedido_id !== null && pm.nombre_cliente !== null) {
@@ -213,12 +241,12 @@ export class PedidoService {
     }
   }
 
-  // 4. Devuelvo los pedidos agregando el campo nombreClienteManual si aplica
   return pedidos.map(pedido => ({
     ...pedido,
     nombreClienteManual: nombreManualPorPedidoId.get(pedido.id) ?? null,
   }));
-  }
+}
+
 
 
 
