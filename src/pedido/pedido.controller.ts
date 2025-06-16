@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, Query } from '@nestjs/common';
 import { PedidoService } from './pedido.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
@@ -20,9 +20,21 @@ export class PedidoController {
   }
 
   @Get('con-nombre-manual')
-  getPedidosConNombreClienteManual() {
-    return this.service.obtenerTodosConNombreClienteManual();
-  }
+  getPedidosConNombreClienteManual(
+  @Query('fechaDesde') fechaDesde?: string,
+  @Query('fechaHasta') fechaHasta?: string,
+  @Query('estado') estado?: string,
+  @Query('clienteId') clienteId?: string,
+  @Query('usuarioId') usuarioId?: string,
+) {
+  return this.service.obtenerTodosConNombreClienteManual(
+    fechaDesde,
+    fechaHasta,
+    estado,
+    clienteId ? +clienteId : undefined,
+    usuarioId ? +usuarioId : undefined,
+  );
+}
 
   @Get(':id')
   getOne(@Param('id') id: string): Promise<Pedido> {
