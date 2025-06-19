@@ -39,14 +39,14 @@ import { EstadisticasModule } from './estadisticas/estadisticas.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
-      type: 'postgres',
-      url: config.get<string>('DATABASE_URL'),
-      autoLoadEntities: true,
-      synchronize: true,
-      ssl: {
-        rejectUnauthorized: false,
-      },
-    }),
+        type: 'postgres',
+        url: config.get<string>('DATABASE_URL'),
+        autoLoadEntities: true,
+        synchronize: true,
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      }),
       inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),

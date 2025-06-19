@@ -28,9 +28,21 @@ export class PedidoService {
     private readonly usuarioService: UsuarioService,
   ) {}
 
-  findAll(): Promise<Pedido[]> {
-    return this.pedidoRepo.find();
+  async findAll(page: number = 1, limit: number = 50): Promise<{
+  data: Pedido[];
+  total: number;
+  page: number;
+  limit: number;
+  }> {
+    const [data, total] = await this.pedidoRepo.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { id: 'DESC' },
+    });
+
+    return { data, total, page, limit };
   }
+
 
   async findOne(id: number): Promise<Pedido> {
     const pedido = await this.pedidoRepo.findOneBy({ id });
@@ -192,37 +204,98 @@ export class PedidoService {
   });
 }
 
-  async obtenerTodosConNombreClienteManual() {
-  // 1. Traigo todos los pedidos con sus relaciones normales
-  const pedidos = await this.pedidoRepo.find({
-    relations: ['cliente', 'usuario', 'armador', 'entregador'],
-    order: { id: 'ASC' },
-  });
+  private cacheNombreManual: Map<number, string> | null = null;
 
-  // 2. Traigo los pedidos_manuales con sus campos reales de BD
-  const pedidosManualesRaw = await this.dataSource
-    .getRepository(PedidoManual)
-    .createQueryBuilder('pm')
+async obtenerTodosConNombreClienteManual(
+  fechaDesde?: string,
+  fechaHasta?: string,
+  estado?: string,
+  clienteId?: number,
+  usuarioId?: number,
+  page: number = 1,
+  limit: number = 50,
+): Promise<{
+  data: any[];
+  total: number;
+  page: number;
+  limit: number;
+}> {
+  const query = this.pedidoRepo.createQueryBuilder('pedido')
+    .leftJoin('pedido.cliente', 'cliente')
+    .leftJoin('pedido.usuario', 'usuario')
     .select([
-      'pm.pedido_id AS pedido_id',
-      'pm.nombre_cliente AS nombre_cliente',
+      'pedido.id',
+      'pedido.estado',
+      'pedido.fechaHora',
+      'pedido.canal',
+      'pedido.estadoPago',
+      'cliente.id',
+      'cliente.nombre',
+      'usuario.id',
+      'usuario.nombre',
+      // Si luego necesitás armador o entregador, agregalos acá también
     ])
-    .getRawMany();
+    .orderBy('pedido.id', 'ASC')
+    .skip((page - 1) * limit)
+    .take(limit);
 
-  // 3. Indexo los nombre_cliente por pedido_id
-  const nombreManualPorPedidoId = new Map<number, string>();
-  for (const pm of pedidosManualesRaw) {
-    if (pm.pedido_id !== null && pm.nombre_cliente !== null) {
-      nombreManualPorPedidoId.set(Number(pm.pedido_id), pm.nombre_cliente);
+  if (fechaDesde) {
+    query.andWhere('pedido.fechaHora >= :fechaDesde', {
+      fechaDesde: new Date(fechaDesde),
+    });
+  }
+
+  if (fechaHasta) {
+    query.andWhere('pedido.fechaHora <= :fechaHasta', {
+      fechaHasta: new Date(fechaHasta),
+    });
+  }
+
+  if (estado) {
+    query.andWhere('pedido.estado = :estado', { estado });
+  }
+
+  if (clienteId) {
+    query.andWhere('cliente.id = :clienteId', { clienteId });
+  }
+
+  if (usuarioId) {
+    query.andWhere('usuario.id = :usuarioId', { usuarioId });
+  }
+
+  const [pedidos, total] = await query.getManyAndCount();
+
+  // Cache simple en memoria para nombres manuales
+  if (!this.cacheNombreManual) {
+    const pedidosManualesRaw = await this.dataSource
+      .getRepository(PedidoManual)
+      .createQueryBuilder('pm')
+      .select(['pm.pedido_id AS pedido_id', 'pm.nombre_cliente AS nombre_cliente'])
+      .getRawMany();
+
+    this.cacheNombreManual = new Map<number, string>();
+    for (const pm of pedidosManualesRaw) {
+      if (pm.pedido_id && pm.nombre_cliente) {
+        this.cacheNombreManual.set(Number(pm.pedido_id), pm.nombre_cliente);
+      }
     }
   }
 
-  // 4. Devuelvo los pedidos agregando el campo nombreClienteManual si aplica
-  return pedidos.map(pedido => ({
+  const data = pedidos.map(pedido => ({
     ...pedido,
-    nombreClienteManual: nombreManualPorPedidoId.get(pedido.id) ?? null,
+    nombreClienteManual: this.cacheNombreManual?.get(pedido.id) ?? null,
   }));
-  }
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+  };
+}
+
+
+
 
 
 
