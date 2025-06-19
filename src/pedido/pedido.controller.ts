@@ -15,17 +15,23 @@ export class PedidoController {
     private readonly ItemPedidoService: ItemPedidoService,
   ) {}
   @Get()
-  getAll(): Promise<Pedido[]> {
-    return this.service.findAll();
+  getAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 50,
+  ) {
+    return this.service.findAll(page, limit);
   }
 
+
   @Get('con-nombre-manual')
-  getPedidosConNombreClienteManual(
+getPedidosConNombreClienteManual(
   @Query('fechaDesde') fechaDesde?: string,
   @Query('fechaHasta') fechaHasta?: string,
   @Query('estado') estado?: string,
   @Query('clienteId') clienteId?: string,
   @Query('usuarioId') usuarioId?: string,
+  @Query('page') page: number = 1,
+  @Query('limit') limit: number = 50,
 ) {
   return this.service.obtenerTodosConNombreClienteManual(
     fechaDesde,
@@ -33,8 +39,11 @@ export class PedidoController {
     estado,
     clienteId ? +clienteId : undefined,
     usuarioId ? +usuarioId : undefined,
+    page,
+    limit
   );
 }
+
 
   @Get(':id')
   getOne(@Param('id') id: string): Promise<Pedido> {

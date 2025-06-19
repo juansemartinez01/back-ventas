@@ -28,9 +28,21 @@ export class PedidoService {
     private readonly usuarioService: UsuarioService,
   ) {}
 
-  findAll(): Promise<Pedido[]> {
-    return this.pedidoRepo.find();
+  async findAll(page: number = 1, limit: number = 50): Promise<{
+  data: Pedido[];
+  total: number;
+  page: number;
+  limit: number;
+  }> {
+    const [data, total] = await this.pedidoRepo.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { id: 'DESC' },
+    });
+
+    return { data, total, page, limit };
   }
+
 
   async findOne(id: number): Promise<Pedido> {
     const pedido = await this.pedidoRepo.findOneBy({ id });
@@ -194,13 +206,22 @@ export class PedidoService {
   estado?: string,
   clienteId?: number,
   usuarioId?: number,
-) {
+  page: number = 1,
+  limit: number = 50,
+): Promise<{
+  data: any[];
+  total: number;
+  page: number;
+  limit: number;
+}> {
   const query = this.pedidoRepo.createQueryBuilder('pedido')
     .leftJoinAndSelect('pedido.cliente', 'cliente')
     .leftJoinAndSelect('pedido.usuario', 'usuario')
     .leftJoinAndSelect('pedido.armador', 'armador')
     .leftJoinAndSelect('pedido.entregador', 'entregador')
-    .orderBy('pedido.id', 'ASC');
+    .orderBy('pedido.id', 'ASC')
+    .skip((page - 1) * limit)
+    .take(limit);
 
   if (fechaDesde) {
     query.andWhere('pedido.fechaHora >= :fechaDesde', {
@@ -226,7 +247,7 @@ export class PedidoService {
     query.andWhere('pedido.usuario.id = :usuarioId', { usuarioId });
   }
 
-  const pedidos = await query.getMany();
+  const [pedidos, total] = await query.getManyAndCount();
 
   const pedidosManualesRaw = await this.dataSource
     .getRepository(PedidoManual)
@@ -241,11 +262,19 @@ export class PedidoService {
     }
   }
 
-  return pedidos.map(pedido => ({
+  const data = pedidos.map(pedido => ({
     ...pedido,
     nombreClienteManual: nombreManualPorPedidoId.get(pedido.id) ?? null,
   }));
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+  };
 }
+
 
 
 
