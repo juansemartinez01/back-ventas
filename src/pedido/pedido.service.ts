@@ -200,7 +200,9 @@ export class PedidoService {
   });
 }
 
-  async obtenerTodosConNombreClienteManual(
+  private cacheNombreManual: Map<number, string> | null = null;
+
+async obtenerTodosConNombreClienteManual(
   fechaDesde?: string,
   fechaHasta?: string,
   estado?: string,
@@ -215,10 +217,20 @@ export class PedidoService {
   limit: number;
 }> {
   const query = this.pedidoRepo.createQueryBuilder('pedido')
-    .leftJoinAndSelect('pedido.cliente', 'cliente')
-    .leftJoinAndSelect('pedido.usuario', 'usuario')
-    .leftJoinAndSelect('pedido.armador', 'armador')
-    .leftJoinAndSelect('pedido.entregador', 'entregador')
+    .leftJoin('pedido.cliente', 'cliente')
+    .leftJoin('pedido.usuario', 'usuario')
+    .select([
+      'pedido.id',
+      'pedido.estado',
+      'pedido.fechaHora',
+      'pedido.canal',
+      'pedido.estadoPago',
+      'cliente.id',
+      'cliente.nombre',
+      'usuario.id',
+      'usuario.nombre',
+      // Si luego necesitás armador o entregador, agregalos acá también
+    ])
     .orderBy('pedido.id', 'ASC')
     .skip((page - 1) * limit)
     .take(limit);
@@ -240,31 +252,34 @@ export class PedidoService {
   }
 
   if (clienteId) {
-    query.andWhere('pedido.cliente.id = :clienteId', { clienteId });
+    query.andWhere('cliente.id = :clienteId', { clienteId });
   }
 
   if (usuarioId) {
-    query.andWhere('pedido.usuario.id = :usuarioId', { usuarioId });
+    query.andWhere('usuario.id = :usuarioId', { usuarioId });
   }
 
   const [pedidos, total] = await query.getManyAndCount();
 
-  const pedidosManualesRaw = await this.dataSource
-    .getRepository(PedidoManual)
-    .createQueryBuilder('pm')
-    .select(['pm.pedido_id AS pedido_id', 'pm.nombre_cliente AS nombre_cliente'])
-    .getRawMany();
+  // Cache simple en memoria para nombres manuales
+  if (!this.cacheNombreManual) {
+    const pedidosManualesRaw = await this.dataSource
+      .getRepository(PedidoManual)
+      .createQueryBuilder('pm')
+      .select(['pm.pedido_id AS pedido_id', 'pm.nombre_cliente AS nombre_cliente'])
+      .getRawMany();
 
-  const nombreManualPorPedidoId = new Map<number, string>();
-  for (const pm of pedidosManualesRaw) {
-    if (pm.pedido_id !== null && pm.nombre_cliente !== null) {
-      nombreManualPorPedidoId.set(Number(pm.pedido_id), pm.nombre_cliente);
+    this.cacheNombreManual = new Map<number, string>();
+    for (const pm of pedidosManualesRaw) {
+      if (pm.pedido_id && pm.nombre_cliente) {
+        this.cacheNombreManual.set(Number(pm.pedido_id), pm.nombre_cliente);
+      }
     }
   }
 
   const data = pedidos.map(pedido => ({
     ...pedido,
-    nombreClienteManual: nombreManualPorPedidoId.get(pedido.id) ?? null,
+    nombreClienteManual: this.cacheNombreManual?.get(pedido.id) ?? null,
   }));
 
   return {
@@ -274,6 +289,7 @@ export class PedidoService {
     limit,
   };
 }
+
 
 
 
