@@ -200,95 +200,102 @@ export class PedidoService {
   });
 }
 
-  private cacheNombreManual: Map<number, string> | null = null;
+ 
 
-async obtenerTodosConNombreClienteManual(
-  fechaDesde?: string,
-  fechaHasta?: string,
-  estado?: string,
-  clienteId?: number,
-  usuarioId?: number,
-  page: number = 1,
-  limit: number = 50,
-): Promise<{
-  data: any[];
-  total: number;
-  page: number;
-  limit: number;
-}> {
-  const query = this.pedidoRepo.createQueryBuilder('pedido')
-    .leftJoin('pedido.cliente', 'cliente')
-    .leftJoin('pedido.usuario', 'usuario')
-    .select([
-      'pedido.id',
-      'pedido.estado',
-      'pedido.fechaHora',
-      'pedido.canal',
-      'pedido.estadoPago',
-      'cliente.id',
-      'cliente.nombre',
-      'usuario.id',
-      'usuario.nombre',
-      // Si luego necesitás armador o entregador, agregalos acá también
-    ])
-    .orderBy('pedido.id', 'ASC')
-    .skip((page - 1) * limit)
-    .take(limit);
+    async obtenerTodosConNombreClienteManual(
+    fechaDesde?: string,
+    fechaHasta?: string,
+    estado?: string,
+    clienteId?: number,
+    usuarioId?: number,
+    page: number = 1,
+    limit: number = 50,
+    ordenCampo: string = 'fechaHora',
+    ordenDireccion: 'ASC' | 'DESC' = 'ASC',
+  ): Promise<{
+    data: any[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const query = this.pedidoRepo.createQueryBuilder('pedido')
+      .leftJoin('pedido.cliente', 'cliente')
+      .leftJoin('pedido.usuario', 'usuario')
+      .select([
+        'pedido.id',
+        'pedido.estado',
+        'pedido.fechaHora',
+        'pedido.canal',
+        'pedido.estadoPago',
+        'cliente.id',
+        'cliente.nombre',
+        'usuario.id',
+        'usuario.nombre',
+      ])
+      .skip((page - 1) * limit)
+      .take(limit);
 
-  if (fechaDesde) {
-    query.andWhere('pedido.fechaHora >= :fechaDesde', {
-      fechaDesde: new Date(fechaDesde),
-    });
-  }
+    if (fechaDesde) {
+      query.andWhere('pedido.fechaHora >= :fechaDesde', {
+        fechaDesde: new Date(fechaDesde),
+      });
+    }
 
-  if (fechaHasta) {
-    query.andWhere('pedido.fechaHora <= :fechaHasta', {
-      fechaHasta: new Date(fechaHasta),
-    });
-  }
+    if (fechaHasta) {
+      query.andWhere('pedido.fechaHora <= :fechaHasta', {
+        fechaHasta: new Date(fechaHasta),
+      });
+    }
 
-  if (estado) {
-    query.andWhere('pedido.estado = :estado', { estado });
-  }
+    if (estado) {
+      query.andWhere('pedido.estado = :estado', { estado });
+    }
 
-  if (clienteId) {
-    query.andWhere('cliente.id = :clienteId', { clienteId });
-  }
+    if (clienteId) {
+      query.andWhere('cliente.id = :clienteId', { clienteId });
+    }
 
-  if (usuarioId) {
-    query.andWhere('usuario.id = :usuarioId', { usuarioId });
-  }
+    if (usuarioId) {
+      query.andWhere('usuario.id = :usuarioId', { usuarioId });
+    }
 
-  const [pedidos, total] = await query.getManyAndCount();
+    // ✅ Ordenamiento dinámico
+    const camposValidos = ['fechaHora', 'id'];
+    const campoOrdenFinal = camposValidos.includes(ordenCampo) ? ordenCampo : 'fechaHora';
+    query.orderBy(`pedido.${campoOrdenFinal}`, ordenDireccion);
 
-  // Cache simple en memoria para nombres manuales
-  if (!this.cacheNombreManual) {
+    const [pedidos, total] = await query.getManyAndCount();
+
+    const pedidoIdsPagina = pedidos.map(p => p.id);
+
     const pedidosManualesRaw = await this.dataSource
       .getRepository(PedidoManual)
       .createQueryBuilder('pm')
       .select(['pm.pedido_id AS pedido_id', 'pm.nombre_cliente AS nombre_cliente'])
+      .where('pm.pedido_id IN (:...ids)', { ids: pedidoIdsPagina })
       .getRawMany();
 
-    this.cacheNombreManual = new Map<number, string>();
+    const nombreManualPorPedidoId = new Map<number, string>();
     for (const pm of pedidosManualesRaw) {
       if (pm.pedido_id && pm.nombre_cliente) {
-        this.cacheNombreManual.set(Number(pm.pedido_id), pm.nombre_cliente);
+        nombreManualPorPedidoId.set(Number(pm.pedido_id), pm.nombre_cliente);
       }
     }
+
+    const data = pedidos.map(pedido => ({
+      ...pedido,
+      nombreClienteManual: nombreManualPorPedidoId.get(pedido.id) ?? null,
+    }));
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
   }
 
-  const data = pedidos.map(pedido => ({
-    ...pedido,
-    nombreClienteManual: this.cacheNombreManual?.get(pedido.id) ?? null,
-  }));
 
-  return {
-    data,
-    total,
-    page,
-    limit,
-  };
-}
 
 
 
