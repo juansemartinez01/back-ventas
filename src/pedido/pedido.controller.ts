@@ -23,15 +23,15 @@ export class PedidoController {
   }
 
 
-    @Get('con-nombre-manual')
+      @Get('con-nombre-manual')
   getPedidosConNombreClienteManual(
     @Query('fechaDesde') fechaDesde?: string,
     @Query('fechaHasta') fechaHasta?: string,
-    @Query('estado') estado?: string,
+    @Query('estado') estado?: string, // Puede ser "pendiente", "armando", o "pendiente,armando"
     @Query('clienteId') clienteId?: string,
     @Query('usuarioId') usuarioId?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 50,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '50',
     @Query('ordenPorFecha') ordenPorFecha: 'ASC' | 'DESC' = 'ASC',
     @Query('ordenCampo') ordenCampo: string = 'fechaHora',
   ) {
@@ -41,8 +41,8 @@ export class PedidoController {
       estado,
       clienteId ? +clienteId : undefined,
       usuarioId ? +usuarioId : undefined,
-      page,
-      limit,
+      +page,
+      +limit,
       ordenCampo,
       ordenPorFecha,
     );
