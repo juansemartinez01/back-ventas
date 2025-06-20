@@ -221,6 +221,8 @@ export class PedidoService {
   const query = this.pedidoRepo.createQueryBuilder('pedido')
     .leftJoin('pedido.cliente', 'cliente')
     .leftJoin('pedido.usuario', 'usuario')
+    .leftJoin('pedido.armador', 'armador')           
+    .leftJoin('pedido.entregador', 'entregador')     
     .select([
       'pedido.id',
       'pedido.estado',
@@ -231,6 +233,12 @@ export class PedidoService {
       'cliente.nombre',
       'usuario.id',
       'usuario.nombre',
+
+      'armador.id',              
+      'armador.nombre',          
+
+      'entregador.id',           
+      'entregador.nombre',        
     ])
     .skip((page - 1) * limit)
     .take(limit);
