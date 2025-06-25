@@ -206,6 +206,7 @@ export class PedidoService {
   fechaDesde?: string,
   fechaHasta?: string,
   estado?: string,
+  estadoPago?: string,
   clienteId?: number,
   usuarioId?: number,
   page: number = 1,
@@ -261,6 +262,14 @@ export class PedidoService {
       query.andWhere('pedido.estado IN (:...estados)', { estados });
     }
   }
+
+  if (estadoPago) {
+  const estadosPago = estadoPago.split(',').map(e => e.trim()).filter(Boolean);
+  if (estadosPago.length > 0) {
+    query.andWhere('pedido.estadoPago IN (:...estadosPago)', { estadosPago });
+  }
+}
+
 
   if (clienteId) {
     query.andWhere('cliente.id = :clienteId', { clienteId });

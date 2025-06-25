@@ -131,4 +131,7 @@ async getIngresosPorPeriodo(
   return formateados;
 }
 
+
+
+
 }

@@ -28,6 +28,7 @@ export class PedidoController {
     @Query('fechaDesde') fechaDesde?: string,
     @Query('fechaHasta') fechaHasta?: string,
     @Query('estado') estado?: string, // Puede ser "pendiente", "armando", o "pendiente,armando"
+    @Query('estadoPago') estadoPago?: string,
     @Query('clienteId') clienteId?: string,
     @Query('usuarioId') usuarioId?: string,
     @Query('page') page: string = '1',
@@ -39,6 +40,7 @@ export class PedidoController {
       fechaDesde,
       fechaHasta,
       estado,
+      estadoPago,
       clienteId ? +clienteId : undefined,
       usuarioId ? +usuarioId : undefined,
       +page,
