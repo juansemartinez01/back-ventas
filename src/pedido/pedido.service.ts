@@ -204,16 +204,19 @@ export class PedidoService {
   });
 }
 
-  private cacheNombreManual: Map<number, string> | null = null;
+ 
 
-async obtenerTodosConNombreClienteManual(
+    async obtenerTodosConNombreClienteManual(
   fechaDesde?: string,
   fechaHasta?: string,
   estado?: string,
+  estadoPago?: string,
   clienteId?: number,
   usuarioId?: number,
   page: number = 1,
   limit: number = 50,
+  ordenCampo: string = 'fechaHora',
+  ordenDireccion: 'ASC' | 'DESC' = 'ASC',
 ): Promise<{
   data: any[];
   total: number;
@@ -223,6 +226,8 @@ async obtenerTodosConNombreClienteManual(
   const query = this.pedidoRepo.createQueryBuilder('pedido')
     .leftJoin('pedido.cliente', 'cliente')
     .leftJoin('pedido.usuario', 'usuario')
+    .leftJoin('pedido.armador', 'armador')           
+    .leftJoin('pedido.entregador', 'entregador')     
     .select([
       'pedido.id',
       'pedido.estado',
@@ -233,9 +238,13 @@ async obtenerTodosConNombreClienteManual(
       'cliente.nombre',
       'usuario.id',
       'usuario.nombre',
-      // Si luego necesitás armador o entregador, agregalos acá también
+
+      'armador.id',              
+      'armador.nombre',          
+
+      'entregador.id',           
+      'entregador.nombre',        
     ])
-    .orderBy('pedido.id', 'ASC')
     .skip((page - 1) * limit)
     .take(limit);
 
@@ -252,8 +261,19 @@ async obtenerTodosConNombreClienteManual(
   }
 
   if (estado) {
-    query.andWhere('pedido.estado = :estado', { estado });
+    const estados = estado.split(',').map(e => e.trim()).filter(Boolean);
+    if (estados.length > 0) {
+      query.andWhere('pedido.estado IN (:...estados)', { estados });
+    }
   }
+
+  if (estadoPago) {
+  const estadosPago = estadoPago.split(',').map(e => e.trim()).filter(Boolean);
+  if (estadosPago.length > 0) {
+    query.andWhere('pedido.estadoPago IN (:...estadosPago)', { estadosPago });
+  }
+}
+
 
   if (clienteId) {
     query.andWhere('cliente.id = :clienteId', { clienteId });
@@ -263,27 +283,34 @@ async obtenerTodosConNombreClienteManual(
     query.andWhere('usuario.id = :usuarioId', { usuarioId });
   }
 
+  const camposValidos = ['fechaHora', 'id'];
+  const campoOrdenFinal = camposValidos.includes(ordenCampo) ? ordenCampo : 'fechaHora';
+  query.orderBy(`pedido.${campoOrdenFinal}`, ordenDireccion);
+
   const [pedidos, total] = await query.getManyAndCount();
 
-  // Cache simple en memoria para nombres manuales
-  if (!this.cacheNombreManual) {
-    const pedidosManualesRaw = await this.dataSource
+  const pedidoIdsPagina = pedidos.map(p => p.id);
+
+  let pedidosManualesRaw: any[] = [];
+  if (pedidoIdsPagina.length > 0) {
+    pedidosManualesRaw = await this.dataSource
       .getRepository(PedidoManual)
       .createQueryBuilder('pm')
       .select(['pm.pedido_id AS pedido_id', 'pm.nombre_cliente AS nombre_cliente'])
+      .where('pm.pedido_id IN (:...ids)', { ids: pedidoIdsPagina })
       .getRawMany();
+  }
 
-    this.cacheNombreManual = new Map<number, string>();
-    for (const pm of pedidosManualesRaw) {
-      if (pm.pedido_id && pm.nombre_cliente) {
-        this.cacheNombreManual.set(Number(pm.pedido_id), pm.nombre_cliente);
-      }
+  const nombreManualPorPedidoId = new Map<number, string>();
+  for (const pm of pedidosManualesRaw) {
+    if (pm.pedido_id && pm.nombre_cliente) {
+      nombreManualPorPedidoId.set(Number(pm.pedido_id), pm.nombre_cliente);
     }
   }
 
   const data = pedidos.map(pedido => ({
     ...pedido,
-    nombreClienteManual: this.cacheNombreManual?.get(pedido.id) ?? null,
+    nombreClienteManual: nombreManualPorPedidoId.get(pedido.id) ?? null,
   }));
 
   return {
@@ -293,6 +320,9 @@ async obtenerTodosConNombreClienteManual(
     limit,
   };
 }
+
+
+
 
 
 
