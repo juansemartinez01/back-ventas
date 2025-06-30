@@ -133,7 +133,7 @@ async getIngresosPorMesDesdeVista(desde: string, hasta: string) {
 
 
 async getPromedioGeneradoPorProducto() {
-  const query = `SELECT * FROM public.promedio_precio_producto ORDER BY promedio_precio DESC`;
+  const query = `SELECT * FROM public.promedio_precio_producto_v ORDER BY promedio_precio DESC`;
   return await this.dataSource.query(query);
 }
 
