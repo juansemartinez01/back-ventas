@@ -132,12 +132,27 @@ async getIngresosPorMesDesdeVista(desde: string, hasta: string) {
 }
 
 
+async getPromedioGeneradoPorProducto() {
+  const query = `SELECT * FROM promedio_precio_producto ORDER BY promedio_precio DESC`;
+  return await this.dataSource.query(query);
+}
+
+
+async refrescarPromedioPrecioProducto() {
+  await this.dataSource.query('REFRESH MATERIALIZED VIEW promedio_precio_producto');
+}
+
+
+
+
+
 
 @Cron('0 0 * * *') // todos los días a la medianoche
 async refrescarVistasEstadisticas() {
   await this.dataSource.query('REFRESH MATERIALIZED VIEW ingresos_por_dia');
   await this.dataSource.query('REFRESH MATERIALIZED VIEW ingresos_por_semana');
   await this.dataSource.query('REFRESH MATERIALIZED VIEW ingresos_por_mes');
+  await this.refrescarPromedioPrecioProducto();
 }
 
 }
