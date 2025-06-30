@@ -34,6 +34,7 @@ import { VentasMensuales } from './ventas-mensuales/ventas-mensuales.entity';
 
 export default new DataSource({
   type:     'postgres',
+  schema:   'public',
   host:     process.env.DB_HOST,
   port:     +(process.env.DB_PORT  || 5432),
   username: process.env.DB_USER,
