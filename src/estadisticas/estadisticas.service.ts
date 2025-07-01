@@ -132,11 +132,59 @@ async getIngresosPorMesDesdeVista(desde: string, hasta: string) {
 }
 
 
-async getPromedioGeneradoPorProducto() {
-  const query = `SELECT * FROM "public"."promedio_precio_producto" ORDER BY promedio_precio DESC`;
-  return await this.dataSource.query(query);
+// estadisticas.service.ts
+async getPromedioGeneradoPorProducto(desde: string, hasta: string) {
+  // Primero intento recuperar de la cache
+  const cached = await this.dataSource.query(
+    `SELECT * FROM promedio_precio_producto_cache WHERE desde = $1 AND hasta = $2`,
+    [desde, hasta]
+  );
+
+  if (cached.length > 0) {
+    return cached;
+  }
+
+  // Si no hay cache, calculo y guardo
+  const query = `
+    SELECT 
+      i.producto_id, 
+      p.nombre, 
+      AVG(i.precio_unitario) AS promedio_precio
+    FROM items_pedido i
+    JOIN pedidos pe ON pe.id = i.pedido_id
+    JOIN productos p ON p.id = i.producto_id
+    WHERE pe.fecha_hora BETWEEN $1 AND $2
+    GROUP BY i.producto_id, p.nombre
+    ORDER BY promedio_precio DESC
+  `;
+
+  const resultado = await this.dataSource.query(query, [desde, hasta]);
+
+  // Guardo en cache para este período
+  for (const row of resultado) {
+    await this.dataSource.query(
+      `INSERT INTO promedio_precio_producto_cache (producto_id, nombre, promedio_precio, desde, hasta)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (producto_id, desde, hasta) DO UPDATE 
+       SET promedio_precio = EXCLUDED.promedio_precio, nombre = EXCLUDED.nombre`,
+      [row.producto_id, row.nombre, row.promedio_precio, desde, hasta]
+    );
+  }
+
+  return resultado;
 }
 
+@Cron('0 3 1 * *') // Cada mes el día 1 a las 03:00 AM
+async refrescarPromediosMesActual() {
+  const hoy = new Date();
+  const desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const hasta = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+
+  const desdeStr = desde.toISOString().split('T')[0];
+  const hastaStr = hasta.toISOString().split('T')[0];
+
+  await this.getPromedioGeneradoPorProducto(desdeStr, hastaStr);
+}
 
 async refrescarPromedioPrecioProducto() {
   await this.dataSource.query('REFRESH MATERIALIZED VIEW promedio_precio_producto');

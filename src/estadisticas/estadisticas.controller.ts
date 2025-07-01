@@ -133,15 +133,18 @@ async getIngresosPorPeriodo(
 
 
 @Get('promedio-generado-producto')
-async getPromedioGeneradoProducto() {
-  const resultados = await this.estadisticasService.getPromedioGeneradoPorProducto();
+  async getPromedioGeneradoProducto(
+    @Query('desde') desde: string,
+    @Query('hasta') hasta: string
+  ) {
+    const resultados = await this.estadisticasService.getPromedioGeneradoPorProducto(desde, hasta);
 
-  return resultados.map(r => ({
-    producto_id: r.producto_id,
-    nombre: r.nombre,
-    promedio_precio: Number(r.promedio_precio),
-  }));
-}
+    return resultados.map(r => ({
+      producto_id: r.producto_id,
+      nombre: r.nombre,
+      promedio_precio: Number(r.promedio_precio),
+    }));
+  }
 
 
 
