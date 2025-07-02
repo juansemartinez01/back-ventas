@@ -19,7 +19,16 @@ export class EstadisticasController {
     return await this.estadisticasService.getTotalPorPeriodo(periodo, desde, hasta);
   }
 
-  
+
+@Get('productos-vendidos')
+async getProductosVendidos(
+  @Query('periodo') periodo: 'dia' | 'semana' | 'mes',
+  @Query('desde') desde: string,
+  @Query('hasta') hasta: string
+) {
+  return await this.estadisticasService.getProductosVendidosPorPeriodo(periodo, desde, hasta);
+}
+
 
 
 @Get('promedio-generado-producto')
