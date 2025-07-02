@@ -6,93 +6,37 @@ import { DataSource } from 'typeorm';
 export class EstadisticasService {
   constructor(private readonly dataSource: DataSource) {}
 
-  // Acá después vas a agregar los métodos de cada estadística
-  async getTotalPedidosPorPeriodo(
-  periodo: 'dia' | 'semana' | 'mes',
-  desde: string, // formato: 'YYYY-MM-DD'
-  hasta: string  // formato: 'YYYY-MM-DD'
-) {
-  let campoGroup = '';
-  switch (periodo) {
-    case 'dia':
-      campoGroup = 'DATE(fecha_hora)';
-      break;
-    case 'semana':
-      campoGroup = "DATE_TRUNC('week', fecha_hora)";
-      break;
-    case 'mes':
-      campoGroup = "DATE_TRUNC('month', fecha_hora)";
-      break;
-    default:
-      throw new Error('Periodo no válido. Usar dia, semana o mes.');
-  }
+  
 
-  const query = `
-    SELECT ${campoGroup} AS periodo, COUNT(*) AS total
-    FROM pedidos
-    WHERE fecha_hora BETWEEN $1 AND $2
-    GROUP BY ${campoGroup}
-    ORDER BY periodo DESC
-  `;
-
-  return await this.dataSource.query(query, [desde, hasta]);
-}
-
-
-  async getCantidadProductosVendidos(
-  periodo: 'dia' | 'semana' | 'mes',
-  desde: string,
-  hasta: string
-) {
-  let campoGroup = '';
-  switch (periodo) {
-    case 'dia':
-      campoGroup = 'DATE(p.fecha_hora)';
-      break;
-    case 'semana':
-      campoGroup = "DATE_TRUNC('week', p.fecha_hora)";
-      break;
-    case 'mes':
-      campoGroup = "DATE_TRUNC('month', p.fecha_hora)";
-      break;
-    default:
-      throw new Error('Periodo no válido. Usar dia, semana o mes.');
-  }
-
-  const query = `
-    SELECT ${campoGroup} AS periodo, SUM(i.cantidad) AS cantidad_vendida
-    FROM items_pedido i
-    JOIN pedidos p ON p.id = i.pedido_id
-    WHERE p.fecha_hora BETWEEN $1 AND $2
-    GROUP BY ${campoGroup}
-    ORDER BY periodo DESC
-  `;
-
-  return await this.dataSource.query(query, [desde, hasta]);
-}
-
-async getIngresosPorPeriodo(
-  periodo: 'dia' | 'semana' | 'mes',
-  desde: string,
-  hasta: string
-) {
-
-  if (periodo === 'dia') {
-    return this.getIngresosPorDiaDesdeVista(desde, hasta);
-  }
-
-  if (periodo === 'semana') {
-    return this.getIngresosPorSemanaDesdeVista(desde, hasta);
-  }
-
-  if (periodo === 'mes') {
-    return this.getIngresosPorMesDesdeVista(desde, hasta);
-  }
-  // Si no es ni dia, ni semana, ni mes, lanzamos un error
-  throw new Error('Periodo no válido. Usar dia, semana o mes.');
 
   
-}
+
+async getTotalPorPeriodo(periodo: 'dia' | 'semana' | 'mes', desde: string, hasta: string) {
+    let campoGroup = '';
+    switch (periodo) {
+      case 'dia':
+        campoGroup = 'fecha';
+        break;
+      case 'semana':
+        campoGroup = "DATE_TRUNC('week', fecha)";
+        break;
+      case 'mes':
+        campoGroup = "DATE_TRUNC('month', fecha)";
+        break;
+      default:
+        throw new Error('Periodo no válido. Usar dia, semana o mes.');
+    }
+
+    const query = `
+      SELECT ${campoGroup} AS periodo, SUM(total_ingresos) AS total
+      FROM vista_total_ingresos_por_dia
+      WHERE fecha BETWEEN $1 AND $2
+      GROUP BY periodo
+      ORDER BY periodo
+    `;
+
+    return await this.dataSource.query(query, [desde, hasta]);
+  }
 
 
 async getIngresosPorDiaDesdeVista(desde: string, hasta: string) {
@@ -201,6 +145,17 @@ async refrescarVistasEstadisticas() {
   await this.dataSource.query('REFRESH MATERIALIZED VIEW ingresos_por_semana');
   await this.dataSource.query('REFRESH MATERIALIZED VIEW ingresos_por_mes');
   await this.refrescarPromedioPrecioProducto();
+
+
 }
+
+
+
+// 🔁 Cronjob: refresca cada 5 minutos
+  @Cron('0 0 * * *') // todos los días a la medianoche
+  async refrescarVistaTotalIngresos() {
+    await this.dataSource.query('REFRESH MATERIALIZED VIEW CONCURRENTLY vista_total_ingresos_por_dia');
+    console.log('[CRON] Vista total_ingresos actualizada');
+  }
 
 }
