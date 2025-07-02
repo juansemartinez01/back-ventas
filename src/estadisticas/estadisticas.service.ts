@@ -75,6 +75,38 @@ async getTotalPorPeriodo(periodo: 'dia' | 'semana' | 'mes', desde: string, hasta
   return await this.dataSource.query(query, [desde, hasta]);
 }
 
+async getPedidosRealizadosPorPeriodo(
+  periodo: 'dia' | 'semana' | 'mes',
+  desde: string,
+  hasta: string
+) {
+  let campoGroup = '';
+  switch (periodo) {
+    case 'dia':
+      campoGroup = 'fecha';
+      break;
+    case 'semana':
+      campoGroup = "DATE_TRUNC('week', fecha)";
+      break;
+    case 'mes':
+      campoGroup = "DATE_TRUNC('month', fecha)";
+      break;
+    default:
+      throw new Error('Periodo no válido. Usar dia, semana o mes.');
+  }
+
+  const query = `
+    SELECT 
+      ${campoGroup} AS periodo,
+      SUM(cantidad_pedidos) AS total_pedidos
+    FROM vista_pedidos_realizados_por_dia
+    WHERE fecha BETWEEN $1 AND $2
+    GROUP BY periodo
+    ORDER BY periodo
+  `;
+
+  return await this.dataSource.query(query, [desde, hasta]);
+}
 
 
 
@@ -202,6 +234,12 @@ async refrescarVistasEstadisticas() {
 async refrescarVistaProductosVendidos() {
   await this.dataSource.query('REFRESH MATERIALIZED VIEW CONCURRENTLY vista_productos_vendidos_por_dia');
   console.log('[CRON] Vista productos_vendidos actualizada');
+}
+
+@Cron('0 0 * * *') // cada 5 minutos
+async refrescarVistaPedidosRealizados() {
+  await this.dataSource.query('REFRESH MATERIALIZED VIEW CONCURRENTLY vista_pedidos_realizados_por_dia');
+  console.log('[CRON] Vista pedidos_realizados actualizada');
 }
 
 

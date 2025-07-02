@@ -29,6 +29,14 @@ async getProductosVendidos(
   return await this.estadisticasService.getProductosVendidosPorPeriodo(periodo, desde, hasta);
 }
 
+@Get('pedidos-realizados')
+async getPedidosRealizados(
+  @Query('periodo') periodo: 'dia' | 'semana' | 'mes',
+  @Query('desde') desde: string,
+  @Query('hasta') hasta: string
+) {
+  return await this.estadisticasService.getPedidosRealizadosPorPeriodo(periodo, desde, hasta);
+}
 
 
 @Get('promedio-generado-producto')
