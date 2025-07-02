@@ -64,15 +64,17 @@ async getTotalPorPeriodo(periodo: 'dia' | 'semana' | 'mes', desde: string, hasta
     SELECT 
       ${campoGroup} AS periodo,
       producto_id,
+      nombre_producto,
       SUM(cantidad_vendida) AS total_vendido
     FROM vista_productos_vendidos_por_dia
     WHERE fecha BETWEEN $1 AND $2
-    GROUP BY periodo, producto_id
+    GROUP BY periodo, producto_id, nombre_producto
     ORDER BY periodo, total_vendido DESC
   `;
 
   return await this.dataSource.query(query, [desde, hasta]);
 }
+
 
 
 
