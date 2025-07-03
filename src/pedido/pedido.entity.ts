@@ -45,4 +45,7 @@ export class Pedido {
 
   @OneToMany(() => ItemPedido, item => item.pedido, { cascade: true })
   items: ItemPedido[];
+
+  @Column({ type: 'text', nullable: true })
+  nota?: string; // Comentarios sobre el pedido
 }
