@@ -70,7 +70,11 @@ export class UsuarioService {
 
 
   async update(id: number, dto: UpdateUsuarioDto): Promise<Usuario> {
-  const user = await this.repo.findOneBy({ id });
+  const user = await this.repo.findOne({
+    where: { id },
+    relations: ['roles'], // para poder actualizar roles si es ManyToMany
+  });
+
   if (!user) {
     throw new Error('Usuario no encontrado');
   }
@@ -99,8 +103,23 @@ export class UsuarioService {
     user.activo = dto.activo;
   }
 
+  if (dto.ultimoLogin !== undefined) {
+    user.ultimoLogin = dto.ultimoLogin;
+  }
+
+  if (dto.ultimaCompra !== undefined) {
+    user.ultimaCompra = dto.ultimaCompra;
+  }
+
+  // ⚠️ Actualización de roles (si tenés relación ManyToMany)
+  // if (dto.roles !== undefined) {
+  //   const roles = await this.dataSource.findById(dto.roles); // rolRepo debe estar inyectado
+  //   user.roles = roles;
+  // }
+
   return this.repo.save(user);
 }
+
 
 
 
