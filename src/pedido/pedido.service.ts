@@ -306,7 +306,7 @@ export class PedidoService {
 
   const data = pedidos.map(pedido => ({
     ...pedido,
-    nombreClienteManual: nombreManualPorPedidoId.get(pedido.id) ?? null,
+    nombreClienteManual: nombreManualPorPedidoId.get(pedido.id) ?? pedido.cliente?.nombre ?? null,
   }));
 
   return {
