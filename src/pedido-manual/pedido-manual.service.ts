@@ -42,7 +42,7 @@ export class PedidoManualService {
   return this.dataSource.transaction(async manager => {
     // 1) Crear el pedido principal
     const pedido = manager.getRepository(Pedido).create({
-      cliente: dto.clienteId ? { id: dto.clienteId } : null,
+      cliente: { id: dto.clienteId ?? 1 },
       usuario: { id: dto.usuarioId },
       fechaHora: new Date(dto.fechaHora),
       canal: dto.canal,
